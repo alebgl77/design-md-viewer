@@ -59,8 +59,34 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
     return 'custom';
   }
 
+  /**
+   * Everything written *under* a component heading, including its own subsections.
+   *
+   * A section's `content` stops at the next heading of any level, so "### Button" ends the moment
+   * "#### States" begins and a component was only ever handed its opening paragraph. Its variants,
+   * sizes and states — the substance — sat in sibling sections the extractor never looked at, and
+   * the fabricated defaults below hid that from everyone.
+   *
+   * The subtree is the section plus every following one that is nested deeper, stopping at the next
+   * heading of the same or shallower level. Sub-heading lines are re-emitted because the caller
+   * keys off them to know which list it is reading.
+   */
+  function subtreeLines(startIndex: number): string[] {
+    const start = structure.sections[startIndex];
+    const lines = start.content.split('\n');
+
+    for (let i = startIndex + 1; i < structure.sections.length; i++) {
+      const next = structure.sections[i];
+      if (next.level <= start.level) break;
+      lines.push(`${'#'.repeat(next.level)} ${next.heading}`, ...next.content.split('\n'));
+    }
+
+    return lines;
+  }
+
   // 1. Scan sections where heading or parent is in components area or matches known component
-  for (const section of structure.sections) {
+  for (let sectionIndex = 0; sectionIndex < structure.sections.length; sectionIndex++) {
+    const section = structure.sections[sectionIndex];
     const isUnderComponents =
       section.heading.toLowerCase().includes('component') ||
       KNOWN_COMPONENT_NAMES.some(k => section.heading.toLowerCase().includes(k));
@@ -78,7 +104,7 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
       if (seenNames.has(compName.toLowerCase())) continue;
       seenNames.add(compName.toLowerCase());
 
-      const secLines = section.content.split('\n');
+      const secLines = subtreeLines(sectionIndex);
       const variants: ComponentVariant[] = [];
       const states: string[] = [];
       const sizes: string[] = [];
@@ -166,10 +192,10 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
         }
       }
 
-      // Default states if standard
-      if (states.length === 0) {
-        states.push('Default', 'Hover', 'Focus', 'Active', 'Disabled');
-      }
+      // No fabricated states. Filling an empty list with the five states a component *ought* to
+      // have made every component look complete, which silently killed two features that exist to
+      // notice incompleteness: the health audit's interactive-states check could never fail, and
+      // the Overview profile could never score the axis. An absent list has to stay absent.
 
       // Default sizes if standard
       if (
