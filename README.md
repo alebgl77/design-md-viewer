@@ -187,8 +187,8 @@ A `design.md` is a file teams pass around and that agents generate. This project
 Requires Node 20 or newer.
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/design-md-visual-explorer.git
-cd design-md-visual-explorer
+git clone https://github.com/alebgl77/open-fullscreenshot.git
+cd open-fullscreenshot
 
 npm install     # install dependencies
 npm run dev     # dev server on http://localhost:5173

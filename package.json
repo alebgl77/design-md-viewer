@@ -6,9 +6,9 @@
   "author": "Alexandre Beguel",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_GITHUB_USERNAME/design-md-visual-explorer.git"
+    "url": "git+https://github.com/alebgl77/open-fullscreenshot.git"
   },
-  "homepage": "https://YOUR_GITHUB_USERNAME.github.io/design-md-visual-explorer/",
+  "homepage": "https://alebgl77.github.io/open-fullscreenshot/",
   "keywords": [
     "design-system",
     "design-tokens",
