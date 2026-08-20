@@ -168,3 +168,63 @@ describe('Color extractor: names carry no markdown punctuation', () => {
     expect(ds.colors[0].aliases).toContain('Action Blue');
   });
 });
+
+const MIXED_SECTIONS_DOC = `# Orbit
+
+## Colour
+
+| Token | Value | Usage |
+|---|---|---|
+| Primary | #2563eb | Primary actions |
+| Surface | #f8fafc | Page background |
+
+## Type Scale
+
+| Token | Size | Weight | Line height |
+|---|---|---|---|
+| Display | 48px | 700 | 1.1 |
+| Body | 16px | 400 | 1.5 |
+
+## Spacing
+
+- **xs**: 4px
+- **md**: 16px
+
+## Motion
+
+- **fast**: 150ms ease-out
+- **base**: 250ms cubic-bezier(0.4, 0, 0.2, 1)
+`;
+
+describe('Section gating across extractors', () => {
+  it('should not turn spacing bullets into typography tokens', () => {
+    const ds = parseDesignDocument(MIXED_SECTIONS_DOC, 'orbit.md');
+
+    // The section gate in the list path used to be computed and then never applied, so every
+    // "- **name**: 16px" bullet anywhere in the document became a type style.
+    expect(ds.typography.map(t => t.name).sort()).toEqual(['Body', 'Display']);
+    expect(ds.spacing.map(s => s.name).sort()).toEqual(['md', 'xs']);
+  });
+
+  it('should not read a plain token table as an elevation table', () => {
+    const ds = parseDesignDocument(MIXED_SECTIONS_DOC, 'orbit.md');
+
+    // A bare "Value" header used to qualify as a shadow signal, so any token table registered
+    // as elevation and the Shadows category appeared for a document with no shadows in it.
+    expect(ds.shadows).toEqual([]);
+    expect(ds.overview.categoriesDetected).not.toContain('Shadows');
+  });
+
+  it('should capture a whitespace-separated easing, including a function with arguments', () => {
+    const ds = parseDesignDocument(MIXED_SECTIONS_DOC, 'orbit.md');
+
+    expect(ds.overview.categoriesDetected).toContain('Motion');
+    const fast = ds.motion.find(m => m.name === 'fast');
+    const base = ds.motion.find(m => m.name === 'base');
+
+    expect(fast?.duration).toBe('150ms');
+    expect(fast?.easing).toBe('ease-out');
+    expect(base?.duration).toBe('250ms');
+    expect(base?.easing).toBe('cubic-bezier(0.4, 0, 0.2, 1)');
+  });
+});

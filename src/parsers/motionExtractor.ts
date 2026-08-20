@@ -100,7 +100,11 @@ export function extractMotion(
   // 3. Lists
   for (const item of structure.listItems) {
     if (item.headingPath.some(h => /motion|animation|transition|easing/i.test(h))) {
-      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*(\d+(?:ms|s))(?:\s*[,/]\s*([a-zA-Z0-9_\-\s()]+))?`*(?:\s*[-—(]\s*(.*?)\)?)?$/i);
+      // The easing may follow the duration separated by a comma, a slash or just whitespace:
+      // "150ms ease-out", "150ms, ease-out" and "150ms / ease-out" are all common in the wild.
+      // The easing itself is a keyword optionally carrying an argument list, so cubic-bezier(...)
+      // is captured whole rather than clipped at the parenthesis.
+      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*(\d+(?:ms|s))[`*]*(?:\s*[,/]?\s*[`*]*([a-zA-Z][\w-]*(?:\s*\([^)]*\))?)[`*]*)?(?:\s*[-—(]\s*(.*?)\)?)?\s*$/i);
       if (kvMatch) {
         addMotion(
           kvMatch[1].trim(),

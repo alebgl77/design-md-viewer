@@ -7,7 +7,7 @@ import { parsePxValue } from '../normalizers/unitNormalizer';
 const TYPE_HEADER_SIGNAL = /font-size|font|line-height|weight|typography|text/i;
 
 // Sections that own look-alike tables ("| Level | Shadow |", "| Token | Value |").
-const NON_TYPE_SECTION = /shadow|elevation|radius|corner|spacing/i;
+const NON_TYPE_SECTION = /shadow|elevation|radius|corner|spacing|space|gap|padding|margin|motion|breakpoint/i;
 
 // A single whole length value — never a shadow, a font stack or a bare keyword.
 const LENGTH_VALUE = /^[\d.]+(?:px|rem|em|pt)$/i;
@@ -165,12 +165,17 @@ export function extractTypography(
 
   // 4. Extract from List Items
   for (const item of structure.listItems) {
-    const isTypoSection = item.headingPath.some(h => /typography|type|font|heading|text/i.test(h));
-    
+    // A bare "- **md**: 16px" is indistinguishable from a type style, so the section it sits under is
+    // the only signal available. Without this gate every spacing and radius bullet became a type style.
+    const isTypoSection =
+      item.headingPath.some(h => /typography|type|font|heading|text/i.test(h)) &&
+      !item.headingPath.some(h => NON_TYPE_SECTION.test(h));
+    if (!isTypoSection) continue;
+
     // Matches: - **H1**: 36px, Bold, Line height 44px
     // or - H1: 32px / 40px, 700
     const listTypoMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*([\d.]+(?:px|rem|em|pt))\s*(?:\/\s*([\d.]+(?:px|rem|em|pt|\d+)))?(?:,\s*([a-zA-Z0-9_\-\s]+))?(?:,\s*(.+))?$/i);
-    
+
     if (listTypoMatch) {
       const name = listTypoMatch[1].trim();
       const size = listTypoMatch[2].trim();

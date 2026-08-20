@@ -61,9 +61,11 @@ export function extractShadows(
 
   // 2. Tables
   for (const table of structure.tables) {
+    // A bare "Value" header is not a shadow signal: every token table in existence has one, and
+    // accepting it made a plain colour table register as elevation.
     const isShadowTable =
       table.headingPath.some(h => /shadow|elevation|depth|box-shadow/i.test(h)) ||
-      table.headers.some(h => /shadow|elevation|depth|value/i.test(h));
+      table.headers.some(h => /shadow|elevation|box-shadow/i.test(h));
 
     if (isShadowTable) {
       const nameIdx = table.headers.findIndex(h => /name|token|level|key/i.test(h));
