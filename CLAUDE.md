@@ -46,5 +46,16 @@ Input files are treated as untrusted/adversarial. `src/parsers/safety.ts` strips
 ## Conventions
 
 - Path aliases: none — imports are relative (`../schema/designSystem`, etc.).
-- Styling is Tailwind with a fixed dark theme defined in `tailwind.config.js` (`canvas`, `primary`, `dark.9xx`, `border`, `text` color scales) — prefer these tokens over ad hoc hex values in new UI code.
+- Styling is Tailwind driven by a semantic token layer. `src/index.css` declares every colour as
+  space-separated RGB channels on `:root` (dark) and re-declares them under `:root[data-theme="light"]` plus
+  a `prefers-color-scheme: light` block, and `tailwind.config.js` maps them with
+  `rgb(var(--token) / <alpha-value>)`. Because the variables flip with the theme, **no `dark:` variants are
+  used anywhere** — `bg-surface-base` is correct in both themes, and alpha utilities like `bg-accent/15`
+  still work. The keys are `surface` (base/raised/overlay/inset), `line` (subtle/DEFAULT/strong), `content`
+  (primary/secondary/muted), `accent` (DEFAULT/hover/contrast) and `status` (danger/warning/success), with a
+  five-step radius scale (`sm` 6px through `xl` 20px, plus `full` for count pills only).
+- **Never write an arbitrary hex utility** (`bg-[#0b0f0c]`) in UI chrome. The one exception is values that
+  come from the *parsed user document* — colour swatches, shadow and font previews — which are data and
+  belong in inline `style={{ }}`, not in a token. `ComponentsView.tsx` also embeds hex inside the React
+  source it *generates* for the user to copy; that snippet must stay self-contained, so leave it alone.
 - New token categories require: an entry in `DesignSystem`/schema, an extractor, a wire-up in `pipeline.ts`'s `categoriesDetected`/count logic, a `features/<category>/*View.tsx`, and a case in `App.tsx`'s category switch and `DynamicSidebar`.

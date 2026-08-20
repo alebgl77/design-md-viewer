@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Smartphone, Tablet, Monitor, Tv, Sliders } from 'lucide-react';
+import { Smartphone, Tablet, Monitor, Tv } from 'lucide-react';
+import { clsx } from 'clsx';
 import { BreakpointToken } from '../../schema/designSystem';
 import { CopyButton } from '../../components/common/CopyButton';
 import { ProvenancePopover } from '../../components/common/ProvenancePopover';
@@ -14,8 +15,6 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
   breakpoints,
   onNavigateToSource,
 }) => {
-  const minWidth = Math.min(...breakpoints.map(b => b.pxValue), 320);
-  const maxWidth = Math.max(...breakpoints.map(b => b.pxValue), 1600);
   const [simulatedWidth, setSimulatedWidth] = useState(1024);
 
   // Find active breakpoint for current simulated width
@@ -32,31 +31,31 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="pb-4 border-b border-[#1b2b21]">
-        <h2 className="text-xl font-bold text-[#cbd5e1] flex items-center gap-2">
-          <Smartphone className="w-5 h-5 text-[#34d399]" />
+      <div className="pb-4 border-b border-line-subtle">
+        <h1 className="text-xl font-bold text-content-primary flex items-center gap-2">
+          <Smartphone className="w-5 h-5 text-accent" />
           Responsive Breakpoints
-        </h2>
-        <p className="text-xs text-[#94a3b8] mt-0.5">
+        </h1>
+        <p className="text-xs text-content-secondary mt-0.5">
           {breakpoints.length} responsive breakpoint tokens with interactive viewport simulator.
         </p>
       </div>
 
       {/* Viewport Simulator */}
-      <div className="p-6 rounded-2xl bg-[#0e1611]/60 border border-[#1b2b21] space-y-4">
+      <section className="p-6 rounded-lg bg-surface-raised/60 border border-line-subtle space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#94a3b8]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-content-secondary">
               Interactive Viewport Simulator:
-            </span>
-            <span className="font-mono text-sm font-bold text-[#34d399] bg-[#0b0f0c] px-2.5 py-0.5 rounded border border-[#1b2b21]">
+            </h2>
+            <span className="font-mono text-sm font-bold tabular-nums text-accent bg-surface-inset px-2.5 py-0.5 rounded-sm border border-line-subtle">
               {simulatedWidth}px
             </span>
           </div>
 
           {activeBreakpoint && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#94a3b8]">Active Breakpoint:</span>
+              <span className="text-xs text-content-secondary">Active Breakpoint:</span>
               <Badge variant="brand" size="md">
                 {activeBreakpoint.name} (≥ {activeBreakpoint.pxValue}px)
               </Badge>
@@ -71,78 +70,97 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
           max={1920}
           value={simulatedWidth}
           onChange={(e) => setSimulatedWidth(parseInt(e.target.value, 10))}
-          className="w-full h-2 bg-[#0b0f0c] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+          aria-label="Simulated viewport width in pixels"
+          className="w-full h-2 bg-surface-inset rounded-sm appearance-none cursor-pointer accent-accent"
         />
 
         {/* Quick jump buttons */}
         <div className="flex flex-wrap items-center gap-2 pt-2">
-          <span className="text-xs text-[#64748b]">Quick Jumps:</span>
+          <span className="text-xs text-content-muted">Quick Jumps:</span>
           {sortedBreakpoints.map(b => (
             <button
               key={b.id}
+              type="button"
               onClick={() => setSimulatedWidth(b.pxValue)}
-              className={`px-2.5 py-1 rounded-md text-xs font-mono transition-colors ${
+              aria-pressed={simulatedWidth === b.pxValue}
+              className={clsx(
+                'px-2.5 py-1 rounded-md text-xs font-mono tabular-nums transition-colors border',
                 simulatedWidth === b.pxValue
-                  ? 'bg-[#0c6e4e] text-white font-bold'
-                  : 'bg-[#0b0f0c] text-[#94a3b8] hover:text-[#cbd5e1] border border-[#1b2b21]'
-              }`}
+                  ? 'bg-accent text-accent-contrast border-accent font-bold'
+                  : 'bg-surface-inset text-content-secondary hover:text-content-primary border-line-subtle'
+              )}
             >
               {b.name} ({b.pxValue}px)
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Breakpoint Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sortedBreakpoints.map((token) => {
-          const Icon = getDeviceIcon(token.name, token.pxValue);
-          const mediaQuery = `@media (min-width: ${token.pxValue}px) { ... }`;
-          const isActive = activeBreakpoint?.id === token.id;
+      {/* Breakpoint Table */}
+      <div className="rounded-lg border border-line-subtle bg-surface-raised/60 overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <caption className="sr-only">
+            Responsive breakpoints with their minimum width and generated media query.
+          </caption>
+          <thead className="bg-surface-inset border-b border-line-subtle text-content-secondary uppercase font-semibold text-[11px]">
+            <tr>
+              <th scope="col" className="p-3">Breakpoint</th>
+              <th scope="col" className="p-3 text-right">Min width</th>
+              <th scope="col" className="p-3">Media query</th>
+              <th scope="col" className="p-3">Role</th>
+              <th scope="col" className="p-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line-subtle">
+            {sortedBreakpoints.map((token) => {
+              const Icon = getDeviceIcon(token.name, token.pxValue);
+              const mediaQuery = `@media (min-width: ${token.pxValue}px) { ... }`;
+              const isActive = activeBreakpoint?.id === token.id;
 
-          return (
-            <div
-              key={token.id}
-              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 shadow-lg ${
-                isActive
-                  ? 'bg-indigo-950/20 border-[#10b981]/50 shadow-indigo-500/10'
-                  : 'bg-[#0e1611]/60 border-[#1b2b21] hover:border-[#1b2b21]'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-[#0b0f0c] border border-[#1b2b21] flex items-center justify-center text-[#34d399]">
-                  <Icon className="w-5 h-5" />
-                </div>
-
-                <ProvenancePopover
-                  provenance={token.provenance}
-                  confidence={token.confidence}
-                  itemName={token.name}
-                  onNavigateToSource={onNavigateToSource}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-base text-[#cbd5e1]">{token.name}</span>
-                  {isActive && <Badge variant="brand" size="sm">Active</Badge>}
-                </div>
-                <div className="font-mono text-xs text-[#34d399] font-semibold">
-                  ≥ {token.pxValue}px ({token.minWidth || `${token.pxValue}px`})
-                </div>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-[#0b0f0c] border border-[#1b2b21] font-mono text-[11px] text-[#94a3b8] overflow-x-auto truncate">
-                {mediaQuery}
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-[#1b2b21]/80">
-                <span className="text-xs text-[#94a3b8]">{token.role || 'Screen token'}</span>
-                <CopyButton text={`@media (min-width: ${token.pxValue}px)`} label="Query" variant="secondary" />
-              </div>
-            </div>
-          );
-        })}
+              return (
+                <tr
+                  key={token.id}
+                  className={clsx(
+                    'transition-colors',
+                    isActive ? 'bg-accent/10' : 'hover:bg-surface-overlay/30'
+                  )}
+                >
+                  <th scope="row" className="p-3 text-left align-middle">
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-9 h-9 shrink-0 rounded-md bg-surface-inset border border-line-subtle flex items-center justify-center text-accent">
+                        <Icon className="w-4 h-4" aria-hidden="true" />
+                      </span>
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-sm text-content-primary">{token.name}</span>
+                        {isActive && <Badge variant="brand" size="sm">Active</Badge>}
+                      </span>
+                    </span>
+                  </th>
+                  <td className="p-3 align-middle text-right font-mono text-xs font-semibold tabular-nums text-accent whitespace-nowrap">
+                    ≥ {token.pxValue}px ({token.minWidth || `${token.pxValue}px`})
+                  </td>
+                  <td className="p-3 align-middle font-mono tabular-nums text-[11px] text-content-secondary whitespace-nowrap">
+                    {mediaQuery}
+                  </td>
+                  <td className="p-3 align-middle text-xs text-content-secondary">
+                    {token.role || 'Screen token'}
+                  </td>
+                  <td className="p-3 align-middle">
+                    <div className="flex items-center justify-end gap-2">
+                      <CopyButton text={`@media (min-width: ${token.pxValue}px)`} label="Query" variant="secondary" />
+                      <ProvenancePopover
+                        provenance={token.provenance}
+                        confidence={token.confidence}
+                        itemName={token.name}
+                        onNavigateToSource={onNavigateToSource}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

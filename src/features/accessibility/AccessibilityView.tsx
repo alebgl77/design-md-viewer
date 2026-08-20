@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, CheckCircle2, Eye, Keyboard, Touchpad, Zap } from 'lucide-react';
+import { ShieldCheck, Eye, Keyboard, Touchpad, Zap, BadgeCheck } from 'lucide-react';
 import { A11yRule } from '../../schema/designSystem';
 import { ProvenancePopover } from '../../components/common/ProvenancePopover';
 import { Badge } from '../../components/common/Badge';
@@ -25,38 +25,43 @@ export const AccessibilityView: React.FC<AccessibilityViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="pb-4 border-b border-[#1b2b21]">
-        <h2 className="text-xl font-bold text-[#cbd5e1] flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-teal-400" />
-          Accessibility & Compliance Guidelines
-        </h2>
-        <p className="text-xs text-[#94a3b8] mt-0.5">
-          {accessibility.length} accessibility standards and WCAG guidelines extracted from specification.
+      <div className="pb-4 border-b border-line">
+        <h1 className="text-xl font-bold text-content-primary flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-accent" />
+          Accessibility &amp; Compliance Guidelines
+        </h1>
+        <p className="text-xs text-content-muted mt-0.5">
+          <span className="tabular-nums">{accessibility.length}</span> accessibility standards and WCAG guidelines
+          extracted from specification.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {accessibility.map((rule) => {
           const Icon = getCategoryIcon(rule.category);
 
           return (
-            <div
+            <li
               key={rule.id}
-              className="p-5 rounded-2xl bg-[#0e1611]/60 border border-[#1b2b21] hover:border-[#1b2b21] flex flex-col justify-between gap-4 shadow-lg"
+              className="p-5 rounded-lg bg-surface-raised border border-line hover:border-line-strong transition-colors flex flex-col justify-between gap-4 shadow-deep"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4" />
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-md bg-accent/15 text-accent border border-accent/30 flex items-center justify-center shrink-0">
+                    <Icon className="w-4 h-4" aria-hidden="true" />
                   </div>
-                  <div>
-                    <div className="font-bold text-sm text-[#cbd5e1] mb-0.5">{rule.title}</div>
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0">
+                    <h2 className="font-bold text-sm text-content-primary mb-0.5">{rule.title}</h2>
+                    {/* Every conformance signal is spelled out in words as well as tinted: the
+                        category name and the WCAG level are both text, never colour alone. */}
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="neutral" size="sm">
+                        <Icon className="w-3 h-3" aria-hidden="true" />
                         {rule.category}
                       </Badge>
                       {rule.wcagLevel && (
-                        <Badge variant="success" size="sm">
+                        <Badge variant="success" size="sm" title={`WCAG conformance level ${rule.wcagLevel}`}>
+                          <BadgeCheck className="w-3 h-3" aria-hidden="true" />
                           WCAG {rule.wcagLevel}
                         </Badge>
                       )}
@@ -72,13 +77,13 @@ export const AccessibilityView: React.FC<AccessibilityViewProps> = ({
                 />
               </div>
 
-              <p className="text-xs text-[#cbd5e1] leading-relaxed bg-[#0b0f0c] p-3.5 rounded-xl border border-[#1b2b21]/80">
+              <p className="text-xs text-content-secondary leading-relaxed bg-surface-inset p-3.5 rounded-md border border-line-subtle">
                 {rule.description}
               </p>
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </div>
   );
 };

@@ -1,95 +1,141 @@
 <!--
   FOLLOW-UPS once the repository is live on GitHub:
   1. Add a CI status badge (the workflow must exist on GitHub first).
-  2. Add a screenshot or short demo GIF of the explorer (no image file exists yet).
+  2. Add a screenshot or short demo GIF of the explorer.
   3. Add the live demo link once GitHub Pages has published a deployment.
+  4. Upload docs/og-card.png as the repository social preview (Settings -> General -> Social preview).
+     The CI workflow renders it from docs/og-card.html on every push to main.
 -->
+
+<div align="center">
+
+<img src="docs/logo.svg" width="76" height="76" alt="">
 
 # Design.md Visual Explorer
 
-Drop a design-system markdown file into the browser and get a navigable, audited, exportable design system back.
+**Drop a design-system markdown file into the browser. Get a navigable, audited, exportable design system back.**
 
-## What it does
+No schema to adopt. No front matter. No backend. Nothing leaves your machine.
 
-Design systems are usually written down long before they are coded: a `DESIGN.md`, a Notion export, a brand
-guideline doc. That document is readable but not *inspectable* — you cannot see the palette, you cannot check
-a contrast ratio, you cannot tell whether the spacing scale is actually a scale, and you certainly cannot feed
-it to Tailwind.
+</div>
 
-This app closes that gap. It reads the markdown you already have, extracts every design token it can find,
-and turns the document into fourteen browsable views, a health report, and eight ready-to-paste export
-formats. Nothing about the source document has to change: no front matter, no special syntax, no schema to
-adopt.
+---
 
-Every value it shows you is traceable back to the exact line of markdown it came from.
+## See it work
+
+Here is a real document. Nothing about it was written for this tool:
+
+```markdown
+## Colour
+
+| Token   | Value   | Usage                  |
+|---------|---------|------------------------|
+| Primary | #2563eb | Primary actions, links |
+| Surface | #f8fafc | Page background        |
+| Danger  | #dc2626 | Destructive actions    |
+
+## Type Scale
+
+| Token   | Size | Weight | Line height |
+|---------|------|--------|-------------|
+| Display | 48px | 700    | 1.1         |
+| Body    | 16px | 400    | 1.5         |
+
+## Spacing
+
+- **xs**: 4px
+- **md**: 16px
+
+## Motion
+
+- **fast**: 150ms ease-out
+- **base**: 250ms cubic-bezier(0.4, 0, 0.2, 1)
+```
+
+Thirty-two lines in. This comes out:
+
+| Token | Value | Contrast on the declared surface | Source |
+| --- | --- | --- | --- |
+| Primary | `#2563eb` | 5.16:1 — passes AA | `orbit.md:9` |
+| Surface | `#f8fafc` | 17.06:1 — passes AA | `orbit.md:10` |
+| Danger | `#dc2626` | 4.82:1 — passes AA | `orbit.md:11` |
+
+| Token | Size | Weight | Line height | Source |
+| --- | --- | --- | --- | --- |
+| Display | 48px | 700 | 1.1 | `orbit.md:18` |
+| Body | 16px | 400 | 1.5 | `orbit.md:19` |
+
+| Token | Duration | Easing | Source |
+| --- | --- | --- | --- |
+| fast | 150ms | `ease-out` | `orbit.md:30` |
+| base | 250ms | `cubic-bezier(0.4, 0, 0.2, 1)` | `orbit.md:31` |
+
+Categories detected: **Colors, Typography, Spacing, Motion** — and only those. The document declares no
+shadows, no breakpoints and no components, so those views never appear. A colors-only file gets a
+colors-only app.
+
+Every row above carries the line number it came from. Click it and the Source view scrolls to that exact
+line, highlighted. That is the point of the whole project: when the parser gets something wrong, you can
+see *why* in one click, instead of trusting it.
+
+## Why
+
+Design systems get written down long before they get coded — a `DESIGN.md`, a Notion export, a brand
+guideline PDF pasted into a repo. That document is readable but not *inspectable*. You cannot see the
+palette. You cannot check a contrast ratio. You cannot tell whether the spacing scale is actually a scale.
+And you certainly cannot hand it to Tailwind.
+
+This closes that gap without asking the document to change.
 
 ## 100% client-side
 
 The file you load is parsed in your browser and never leaves it.
 
-- No backend, no server, no database — the whole app is static files.
+- No backend, no server, no database. The whole app is static files.
 - No upload endpoint, no analytics, no telemetry, no cookies.
-- The only network requests the app itself makes are the webfont stylesheet in `index.html` and, if you
-  explicitly opt in, the AI enrichment call described below.
+- The only network requests the app makes are the webfont stylesheet, and — if you explicitly opt in — the
+  AI enrichment call described below.
 
-That also means it runs perfectly well from `file://`, from an internal share, or from any static host.
-
-## Features
-
-- **Fourteen views** — Overview, Colors, Typography, Spacing, Radius, Shadows, Borders, Breakpoints,
-  Components, Motion, Accessibility, Tokens, Health Audit and Source. Views appear only for the categories
-  actually detected in your document, so a colors-only file gets a colors-only app.
-- **Provenance on every token** — each extracted value carries its heading path, its line number and the raw
-  markdown snippet it came from. Click through to the Source view and the originating line is highlighted.
-- **Confidence labels** — a token is marked `explicit` when the document literally stated it, `inferred`
-  when the parser derived it. You always know what the document said and what the app guessed.
-- **Health audit** — a scored report (A+ to D) covering WCAG AA contrast failures, near-duplicate colors,
-  off-grid spacing tokens, odd-pixel font sizes, missing brand or functional palettes, and components with
-  incomplete interactive states. Each issue comes with a recommendation and a weighted impact score.
-- **Accessibility tooling** — contrast ratios computed against the document background with AA/AAA verdicts,
-  plus color-vision simulation for protanopia, deuteranopia, tritanopia and achromatopsia.
-- **Eight export formats** — W3C Token JSON, Tailwind v4 `@theme`, Tailwind v3 config, CSS custom
-  properties, a TypeScript theme object, SCSS variables, an AI prompt / `.cursorrules` block, and a
-  normalized `DESIGN.md`.
-- **Instant search** across every token and section, on `Cmd/Ctrl + K`, with a jump straight to the source
-  line of any hit.
-- **Four built-in sample documents** and a starter-template scaffolder, so you can try the app — or bootstrap
-  a new design doc — without having a file ready.
-- **Defensive parsing** — input markdown is treated as untrusted: script tags and `javascript:` URLs are
-  stripped, extracted CSS values are validated and length-capped, and any prompt-injection text in the
-  document stays inert data.
+It runs perfectly well from an internal share or any static host.
 
 ## How the parser works
 
-The interesting engineering is the pipeline, and it is deliberately deterministic — the same document always
-produces the same design system object, with no model in the loop.
+Deterministic by design: the same document always produces the same object, with no model in the loop.
 
+```mermaid
+flowchart LR
+  MD["design.md<br/>untrusted text"] --> TOK["tokenizer<br/>markdownStructure.ts"]
+  TOK --> IDX["structural index<br/>sections · tables · code blocks · list items<br/>each with its line range"]
+  IDX --> EX["11 extractors<br/>colors · type · spacing · motion · …"]
+  IDX --> RR["reference resolver<br/>dereferences var(--x)<br/>cycle-safe"]
+  EX --> P["pipeline.ts"]
+  RR --> P
+  P --> DS["DesignSystem<br/>every token carries<br/>provenance + confidence"]
+  DS --> V["14 views"]
+  DS --> A["health audit"]
+  DS --> E["8 export formats"]
 ```
-markdown  ->  tokenizer  ->  11 extractors  ->  reference resolver  ->  pipeline  ->  DesignSystem
-```
 
-**1. Tokenizer** — `src/parsers/markdownStructure.ts` makes a single pass over the raw text and produces a
-flat structural index: sections, fenced code blocks, tables and list items. Every one of those records keeps
-its start line, its end line, and the heading path it sits under. This is the only stage that touches raw
-text; everything downstream works on the structure.
+**1. Tokenizer** makes a single pass over the raw text and produces a flat structural index. Every record
+keeps its start line, end line and heading path. This is the only stage that touches raw text; everything
+downstream works on the structure. Sanitization here is line-preserving, so a recorded line number is always
+an index into the document you actually see.
 
-**2. Extractors** — one module per category under `src/parsers`, eleven in total: colors, typography,
-spacing, radius, shadows, borders, breakpoints, components, motion, accessibility and overview. Each one
-reads the shared structure and looks for its own category wherever it can plausibly appear — a markdown
-table, a CSS or JSON code block, a bullet list, or prose. Extractors never see each other's output, which
-keeps them independently testable and makes adding a new category an additive change.
+**2. Extractors** — one module per category, eleven of them. Each reads the shared index and looks for its
+own category wherever it can plausibly appear: a markdown table, a CSS or JSON code block, a bullet list, or
+prose. Extractors never see each other's output, which keeps them independently testable and makes adding a
+category an additive change.
 
-**3. Reference resolver** — `src/parsers/referenceResolver.ts` collects every CSS custom property declared
-in the document's code blocks and dereferences aliases recursively, with cycle detection, so a token defined
-as `var(--brand-500)` reports the value it ultimately points at rather than the indirection.
+**3. Reference resolver** collects every CSS custom property declared in the document's code blocks and
+dereferences aliases recursively, with cycle detection, so a token defined as `var(--brand-500)` reports the
+value it ultimately points at.
 
-**4. Pipeline** — `src/parsers/pipeline.ts` runs the stages, decides which categories were actually detected,
-computes totals and a content hash, and assembles the `DesignSystem` object defined in
-`src/schema/designSystem.ts` (typed, and mirrored by Zod schemas).
+**4. Pipeline** runs the stages, decides which categories were actually detected, and assembles the
+`DesignSystem` object.
 
-### Provenance and confidence
+### Provenance is a type-level requirement
 
-Both are part of the schema rather than bolted on afterwards. Every token embeds:
+Every token embeds this, and it is not optional:
 
 ```ts
 interface Provenance {
@@ -103,9 +149,38 @@ interface Provenance {
 type ExtractionConfidence = 'explicit' | 'inferred';
 ```
 
-Because provenance is mandatory at the type level, an extractor cannot emit a value it can't point at. That
-is what makes the app trustworthy on documents it has never seen: when the parser is wrong, the source line
-is one click away, and inferred values are visually distinguishable from stated ones.
+Because provenance is mandatory in the schema, an extractor *cannot* emit a value it is unable to point at.
+And `confidence` separates what the document stated from what the parser derived, so the two are never
+silently blended.
+
+## Features
+
+- **Fourteen views** — Overview, Colors, Typography, Spacing, Radius, Shadows, Borders, Breakpoints,
+  Components, Motion, Accessibility, Tokens, Health Audit, Source. Only detected categories appear.
+- **Health audit** — a scored report (A+ to D) covering WCAG AA contrast failures, near-duplicate colors,
+  off-grid spacing, odd-pixel font sizes, missing functional palettes, and components with incomplete
+  interactive states. Every issue carries a recommendation and a weighted impact score.
+- **Accessibility tooling** — contrast computed against the document's *declared* background rather than a
+  hardcoded one, with AA/AAA verdicts, plus color-vision simulation for protanopia, deuteranopia,
+  tritanopia and achromatopsia.
+- **Eight export formats** — W3C Token JSON, Tailwind v4 `@theme`, Tailwind v3 config, CSS custom
+  properties, a TypeScript theme object, SCSS variables, an AI prompt / `.cursorrules` block, and a
+  normalized `DESIGN.md`.
+- **Instant search** across every token and section on `Cmd/Ctrl + K`, jumping straight to the source line.
+- **Light and dark themes**, because you cannot honestly judge a light design system's colors on a dark
+  chrome.
+- **Four built-in samples** and a starter-template scaffolder, so you can try it without a file ready.
+
+## Untrusted input is treated as untrusted
+
+A `design.md` is a file teams pass around and that agents generate. This project assumes it may be hostile.
+
+- Script tags and `javascript:` URLs are stripped before parsing, newline-for-newline so line numbers stay
+  honest.
+- Values reaching a stylesheet are sanitized for CSS grammar; values reaching a JS or JSON literal are
+  emitted through `JSON.stringify` rather than interpolated into a template. A token value cannot contribute
+  syntax to an exported file.
+- Prompt-injection text inside a document stays inert data. There is a test for exactly that.
 
 ## Quickstart
 
@@ -116,15 +191,14 @@ git clone https://github.com/YOUR_GITHUB_USERNAME/design-md-visual-explorer.git
 cd design-md-visual-explorer
 
 npm install     # install dependencies
-npm run dev     # start the dev server on http://localhost:5173
-npm test        # run the Vitest suite
-npm run build   # type-check and emit the static bundle to dist/
+npm run dev     # dev server on http://localhost:5173
+npm test        # Vitest suite
+npm run build   # type-check and emit static files to dist/
 ```
 
-`npm run typecheck` runs `tsc --noEmit` on its own, and `npm run preview` serves the built `dist/` locally.
+`npm run typecheck` runs `tsc --noEmit` alone; `npm run preview` serves the built `dist/`.
 
-The build emits relative asset URLs, so `dist/` can be served from a domain root or from any subdirectory
-without further configuration.
+The build emits relative asset URLs, so `dist/` works from a domain root or any subdirectory.
 
 ## Tech stack
 
@@ -132,25 +206,23 @@ without further configuration.
 | --- | --- |
 | UI | React 18 + TypeScript (strict) |
 | Build | Vite 6 |
-| Styling | Tailwind CSS 3 |
-| Validation | Zod |
-| Icons | lucide-react |
+| Styling | Tailwind CSS 3, driven by CSS custom properties |
 | Tests | Vitest |
+| Icons | lucide-react |
 
 No router: view switching is plain React state, which keeps the bundle small and static hosting trivial.
 
 ## Optional AI enrichment
 
 The parser is fully deterministic and the app is completely usable without any AI. Enrichment is an opt-in
-extra that adds conceptual metadata the markdown rarely states outright — a tagline, a design philosophy,
-a visual tone, design principles, and short usage guidance per component.
+extra that adds only the conceptual metadata a document rarely states outright: a tagline, a design
+philosophy, a visual tone, principles, and short usage guidance per component.
 
-- It requires **your own Google Gemini API key**, which you enter in the AI settings panel. A custom endpoint
-  can be used instead if you prefer to proxy the call.
-- The key is stored in your browser's `localStorage` and is sent only to the API endpoint you configured.
-  There is no server in this project that could receive it.
-- Enrichment is constrained to conceptual fields only: it never invents hex codes or pixel measurements, and
-  the response is validated against a Zod schema before anything reaches the UI.
+- It requires **your own Google Gemini API key**, or a custom endpoint if you would rather proxy the call.
+- The key stays in your browser and is sent only to the endpoint you configured. There is no server in this
+  project that could receive it.
+- It is constrained to conceptual fields. It never invents hex codes or pixel measurements, and the response
+  is validated against a Zod schema before anything reaches the UI.
 - Without a key, the app runs at full functionality on deterministic parsing alone.
 
 ## License

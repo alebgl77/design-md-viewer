@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Tag, ArrowRight, Search, GitBranch } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Tag, ArrowRight, GitBranch } from 'lucide-react';
+import { clsx } from 'clsx';
 import { GenericToken } from '../../schema/designSystem';
 import { CopyButton } from '../../components/common/CopyButton';
 import { ProvenancePopover } from '../../components/common/ProvenancePopover';
@@ -14,29 +15,35 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = ['All', ...Array.from(new Set(tokens.map(t => t.category)))];
+  const categories = useMemo(
+    () => ['All', ...Array.from(new Set(tokens.map(t => t.category)))],
+    [tokens]
+  );
 
-  const filteredTokens = tokens.filter(t => {
-    const matchesCat = filterCategory === 'All' || t.category === filterCategory;
-    const matchesSearch =
-      searchQuery === '' ||
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.value.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.cssVariable?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
-  });
+  const filteredTokens = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return tokens.filter(t => {
+      const matchesCat = filterCategory === 'All' || t.category === filterCategory;
+      const matchesSearch =
+        query === '' ||
+        t.name.toLowerCase().includes(query) ||
+        t.value.toLowerCase().includes(query) ||
+        t.cssVariable?.toLowerCase().includes(query);
+      return matchesCat && matchesSearch;
+    });
+  }, [tokens, filterCategory, searchQuery]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#1b2b21]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-line">
         <div>
-          <h2 className="text-xl font-bold text-[#cbd5e1] flex items-center gap-2">
-            <Tag className="w-5 h-5 text-[#34d399]" />
-            Design Tokens & Variable Aliases
-          </h2>
-          <p className="text-xs text-[#94a3b8] mt-0.5">
-            {tokens.length} raw CSS variables and resolved alias relationships.
+          <h1 className="text-xl font-bold text-content-primary flex items-center gap-2">
+            <Tag className="w-5 h-5 text-accent" />
+            Design Tokens &amp; Variable Aliases
+          </h1>
+          <p className="text-xs text-content-muted mt-0.5">
+            <span className="tabular-nums">{tokens.length}</span> raw CSS variables and resolved alias relationships.
           </p>
         </div>
 
@@ -46,95 +53,109 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tokens..."
-            className="px-3 py-1.5 rounded-lg bg-[#0e1611] border border-[#1b2b21] text-xs text-[#cbd5e1] placeholder-[#64748b] focus:outline-none focus:border-[#10b981] w-full sm:w-48"
+            aria-label="Search tokens"
+            className="px-3 py-1.5 rounded-sm bg-surface-raised border border-line text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-accent w-full sm:w-48"
           />
         </div>
       </div>
 
       {/* Category Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilterCategory(cat)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors shrink-0 ${
-              filterCategory === cat
-                ? 'bg-[#10b981]/15 border border-[#10b981]/40 text-[#34d399]'
-                : 'bg-[#0e1611]/60 border border-[#1b2b21] text-[#94a3b8] hover:text-[#cbd5e1]'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const isActive = filterCategory === cat;
+          return (
+            <button
+              key={cat}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => setFilterCategory(cat)}
+              className={clsx(
+                'px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors shrink-0 border',
+                isActive
+                  ? 'bg-accent/15 border-accent/40 text-accent'
+                  : 'bg-surface-raised border-line text-content-secondary hover:text-content-primary hover:border-line-strong'
+              )}
+            >
+              {cat}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Tokens Table */}
-      <div className="rounded-2xl border border-[#1b2b21] bg-[#0e1611]/60 overflow-hidden shadow-xl">
-        <table className="w-full text-left text-xs text-[#cbd5e1]">
-          <thead className="bg-black/80 border-b border-[#1b2b21] text-[#94a3b8] uppercase font-semibold text-[11px]">
-            <tr>
-              <th className="p-3.5">CSS Variable</th>
-              <th className="p-3.5">Category</th>
-              <th className="p-3.5">Raw Value</th>
-              <th className="p-3.5">Resolved Alias</th>
-              <th className="p-3.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#1b2b21]/60 font-mono">
-            {filteredTokens.map((token) => (
-              <tr key={token.id} className="hover:bg-[#15221a]/40 transition-colors">
-                <td className="p-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#34d399]">{token.cssVariable || token.name}</span>
-                    {token.references && token.references.length > 0 && (
-                      <Badge variant="inferred" size="sm" title={`Aliases ${token.references.join(', ')}`}>
-                        <GitBranch className="w-3 h-3" />
-                        Alias
-                      </Badge>
-                    )}
-                  </div>
-                </td>
-                <td className="p-3.5 font-sans">
-                  <Badge variant="neutral" size="sm">
-                    {token.category}
-                  </Badge>
-                </td>
-                <td className="p-3.5 text-[#cbd5e1]">
-                  <span className="bg-[#0b0f0c] px-2 py-0.5 rounded border border-[#1b2b21]">
-                    {token.value}
-                  </span>
-                </td>
-                <td className="p-3.5">
-                  {token.resolvedValue ? (
-                    <div className="flex items-center gap-1.5 text-emerald-400">
-                      <ArrowRight className="w-3 h-3 text-[#64748b]" />
-                      <span className="bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/60">
-                        {token.resolvedValue}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-[#64748b] font-sans text-xs">Direct value</span>
-                  )}
-                </td>
-                <td className="p-3.5 text-right font-sans">
-                  <div className="flex items-center justify-end gap-1.5">
-                    <CopyButton
-                      text={`${token.cssVariable || token.name}: ${token.value};`}
-                      label="CSS"
-                      variant="secondary"
-                    />
-                    <ProvenancePopover
-                      provenance={token.provenance}
-                      confidence={token.confidence}
-                      itemName={token.name}
-                      onNavigateToSource={onNavigateToSource}
-                    />
-                  </div>
-                </td>
+      {/* Tokens Table.
+          Only the horizontal axis scrolls, and it does so on this wrapper alone — the
+          ProvenancePopover escapes to a portal, so nothing here needs to clip it. */}
+      <div className="rounded-lg border border-line bg-surface-raised shadow-deep">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-content-secondary">
+            <caption className="sr-only">
+              Design tokens with their category, raw value, resolved alias and per-token actions
+            </caption>
+            <thead className="bg-surface-inset border-b border-line text-content-secondary uppercase font-semibold text-[11px]">
+              <tr>
+                <th scope="col" className="p-3.5">CSS Variable</th>
+                <th scope="col" className="p-3.5">Category</th>
+                <th scope="col" className="p-3.5">Raw Value</th>
+                <th scope="col" className="p-3.5">Resolved Alias</th>
+                <th scope="col" className="p-3.5 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-line-subtle font-mono">
+              {filteredTokens.map((token) => (
+                <tr key={token.id} className="hover:bg-surface-overlay transition-colors">
+                  <th scope="row" className="p-3.5 font-normal text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-accent">{token.cssVariable || token.name}</span>
+                      {token.references && token.references.length > 0 && (
+                        <Badge variant="inferred" size="sm" title={`Aliases ${token.references.join(', ')}`}>
+                          <GitBranch className="w-3 h-3" aria-hidden="true" />
+                          Alias
+                        </Badge>
+                      )}
+                    </div>
+                  </th>
+                  <td className="p-3.5 font-sans">
+                    <Badge variant="neutral" size="sm">
+                      {token.category}
+                    </Badge>
+                  </td>
+                  <td className="p-3.5 text-content-primary">
+                    <span className="bg-surface-inset px-2 py-0.5 rounded-sm border border-line-subtle">
+                      {token.value}
+                    </span>
+                  </td>
+                  <td className="p-3.5">
+                    {token.resolvedValue ? (
+                      <div className="flex items-center gap-1.5 text-accent">
+                        <ArrowRight className="w-3 h-3 text-content-muted" aria-hidden="true" />
+                        <span className="bg-accent/10 px-2 py-0.5 rounded-sm border border-accent/30">
+                          {token.resolvedValue}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-content-muted font-sans text-xs">Direct value</span>
+                    )}
+                  </td>
+                  <td className="p-3.5 text-right font-sans">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <CopyButton
+                        text={`${token.cssVariable || token.name}: ${token.value};`}
+                        label="CSS"
+                        variant="secondary"
+                      />
+                      <ProvenancePopover
+                        provenance={token.provenance}
+                        confidence={token.confidence}
+                        itemName={token.name}
+                        onNavigateToSource={onNavigateToSource}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

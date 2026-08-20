@@ -1,0 +1,68 @@
+name: Render social card
+
+# The social preview image is generated from docs/og-card.html rather than committed as a binary,
+# so the card stays reviewable in a diff and cannot drift from the design tokens it is built on.
+#
+# The rendered PNG is published as a build artifact. Download it once and upload it under
+# Settings -> General -> Social preview; GitHub does not expose that slot to the API.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/og-card.html'
+      - '.github/workflows/og-card.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: Render docs/og-card.html to PNG
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        # Installed into the workspace (not just the npx cache) so the render script can import it.
+        run: |
+          npm install --no-save playwright@1.49.0
+          npx playwright install --with-deps chromium
+
+      - name: Render the card
+        run: |
+          cat > render-og.mjs <<'SCRIPT'
+          import { chromium } from 'playwright';
+          import { pathToFileURL } from 'node:url';
+          import { resolve } from 'node:path';
+
+          const browser = await chromium.launch();
+          const page = await browser.newPage({
+            viewport: { width: 1280, height: 640 },
+            deviceScaleFactor: 2,
+          });
+
+          await page.goto(pathToFileURL(resolve('docs/og-card.html')).href, {
+            waitUntil: 'networkidle',
+          });
+          // Webfonts decide the whole composition; screenshotting before they settle ships a fallback.
+          await page.evaluate(() => document.fonts.ready);
+
+          await page.locator('.card').screenshot({ path: 'og-card.png' });
+          await browser.close();
+          SCRIPT
+          node render-og.mjs
+
+      - name: Upload the card
+        uses: actions/upload-artifact@v4
+        with:
+          name: og-card
+          path: og-card.png
+          if-no-files-found: error

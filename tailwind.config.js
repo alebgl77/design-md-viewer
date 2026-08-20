@@ -4,59 +4,68 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  // Theming is driven entirely by the CSS custom properties in src/index.css,
+  // which flip on [data-theme]. The `dark:` variant is therefore INTENTIONALLY
+  // UNUSED — a single utility such as `bg-surface-base` is already correct in
+  // both themes. This stays on 'class' rather than 'media' so the variant can
+  // never fire off the OS preference and silently fork a second, unmaintained
+  // colour path.
   darkMode: 'class',
   theme: {
+    // Not under `extend`: this is a shape lock. Replacing the scale outright
+    // removes Tailwind's `rounded` / `rounded-2xl` / `rounded-3xl` defaults so
+    // there are exactly five legal corner radii in the product.
+    borderRadius: {
+      sm: '6px',    // chips, badges, inputs, small controls
+      md: '10px',   // buttons, list items, sidebar entries
+      lg: '14px',   // cards, panels, table containers
+      xl: '20px',   // modals, the drop zone
+      full: '9999px', // ONLY numeric count pills and status dots
+    },
     extend: {
+      // Every colour resolves through a CSS variable holding space-separated
+      // RGB channels, so `<alpha-value>` substitution keeps opacity utilities
+      // (`bg-accent/15`, `border-line/60`) working.
       colors: {
-        canvas: '#0b0f0c',
-        primary: {
-          DEFAULT: '#10b981',
-          hover: '#0c6e4e',
-          accent: '#10a34a',
-          light: '#34d399',
-          mint: '#6ee7b7',
-          soft: '#cbe9d8',
-          pale: '#d1fae5',
+        surface: {
+          base: 'rgb(var(--surface-base) / <alpha-value>)',
+          raised: 'rgb(var(--surface-raised) / <alpha-value>)',
+          overlay: 'rgb(var(--surface-overlay) / <alpha-value>)',
+          inset: 'rgb(var(--surface-inset) / <alpha-value>)',
         },
-        secondary: {
-          DEFAULT: '#1d4ed8',
-          hover: '#1e40af',
-          deep: '#0b3550',
+        line: {
+          DEFAULT: 'rgb(var(--line-default) / <alpha-value>)',
+          subtle: 'rgb(var(--line-subtle) / <alpha-value>)',
+          strong: 'rgb(var(--line-strong) / <alpha-value>)',
         },
-        dark: {
-          950: '#0b0f0c',
-          900: '#0e1611',
-          850: '#111a14',
-          800: '#15221a',
-          750: '#1a2a20',
-          700: '#22362b',
+        content: {
+          primary: 'rgb(var(--content-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--content-secondary) / <alpha-value>)',
+          muted: 'rgb(var(--content-muted) / <alpha-value>)',
         },
-        border: {
-          DEFAULT: '#1b2b21',
-          subtle: '#121d16',
-          strong: '#284132',
+        accent: {
+          DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+          hover: 'rgb(var(--accent-hover) / <alpha-value>)',
+          contrast: 'rgb(var(--accent-contrast) / <alpha-value>)',
         },
-        text: {
-          primary: '#cbd5e1',
-          secondary: '#94a3b8',
-          muted: '#64748b',
-        }
+        status: {
+          danger: 'rgb(var(--status-danger) / <alpha-value>)',
+          warning: 'rgb(var(--status-warning) / <alpha-value>)',
+          success: 'rgb(var(--status-success) / <alpha-value>)',
+        },
       },
       fontFamily: {
         heading: ['"Bricolage Grotesque"', 'sans-serif'],
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'Fira Code', 'Consolas', 'monospace'],
       },
-      borderRadius: {
-        'card': '24px',
-        'card-sm': '16px',
-        'card-md': '22px',
-        'card-lg': '50px',
-      },
+      // Shadows are tinted, never pure black: --shadow-color and --shadow-alpha
+      // flip with the theme so the same utility reads as depth on the dark
+      // ground and as a soft lift (not dirt) on the light one.
       boxShadow: {
-        'chromatic': '0 0 0 1px rgba(52, 211, 153, 0.25), 0 10px 30px -22px rgba(0, 0, 0, 0.8)',
-        'chromatic-glow': '0 0 0 4px rgba(52, 211, 153, 0.15), 0 10px 30px -20px rgba(0, 0, 0, 0.9)',
-        'deep': '0 10px 30px -22px #000000',
+        'chromatic': '0 0 0 1px rgb(var(--accent) / 0.25), 0 10px 30px -22px rgb(var(--shadow-color) / var(--shadow-alpha))',
+        'chromatic-glow': '0 0 0 4px rgb(var(--accent) / 0.15), 0 10px 30px -20px rgb(var(--shadow-color) / var(--shadow-alpha))',
+        'deep': '0 10px 30px -22px rgb(var(--shadow-color) / var(--shadow-alpha))',
       }
     },
   },

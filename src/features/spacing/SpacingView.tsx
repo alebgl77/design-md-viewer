@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Ruler, Maximize, AlignJustify } from 'lucide-react';
+import { clsx } from 'clsx';
 import { SpacingToken } from '../../schema/designSystem';
 import { CopyButton } from '../../components/common/CopyButton';
 import { ProvenancePopover } from '../../components/common/ProvenancePopover';
@@ -18,36 +19,42 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
 
   const maxPx = Math.max(...spacing.map(s => s.pxValue), 64);
 
+  const tabClass = (active: boolean) =>
+    clsx(
+      'flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-sm transition-colors',
+      active ? 'bg-accent text-accent-contrast' : 'text-content-secondary hover:text-content-primary'
+    );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#1b2b21]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-line-subtle">
         <div>
-          <h2 className="text-xl font-bold text-[#cbd5e1] flex items-center gap-2">
-            <Ruler className="w-5 h-5 text-emerald-400" />
-            Spacing Scale & Rhythm
-          </h2>
-          <p className="text-xs text-[#94a3b8] mt-0.5">
+          <h1 className="text-xl font-bold text-content-primary flex items-center gap-2">
+            <Ruler className="w-5 h-5 text-accent" />
+            Spacing Scale &amp; Rhythm
+          </h1>
+          <p className="text-xs text-content-secondary mt-0.5">
             {spacing.length} proportional spacing tokens mapped on visual comparison scales.
           </p>
         </div>
 
         {/* View mode toggle */}
-        <div className="flex items-center bg-[#0e1611] border border-[#1b2b21] rounded-lg p-0.5">
+        <div className="flex items-center bg-surface-raised border border-line rounded-md p-0.5">
           <button
+            type="button"
             onClick={() => setViewMode('bars')}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-              viewMode === 'bars' ? 'bg-[#0c6e4e] text-white' : 'text-[#94a3b8] hover:text-[#cbd5e1]'
-            }`}
+            aria-pressed={viewMode === 'bars'}
+            className={tabClass(viewMode === 'bars')}
           >
             <AlignJustify className="w-3.5 h-3.5" />
             <span>Scale Bars</span>
           </button>
           <button
+            type="button"
             onClick={() => setViewMode('boxes')}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-              viewMode === 'boxes' ? 'bg-[#0c6e4e] text-white' : 'text-[#94a3b8] hover:text-[#cbd5e1]'
-            }`}
+            aria-pressed={viewMode === 'boxes'}
+            className={tabClass(viewMode === 'boxes')}
           >
             <Maximize className="w-3.5 h-3.5" />
             <span>Dimension Boxes</span>
@@ -57,50 +64,68 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
 
       {viewMode === 'bars' ? (
         /* Bars Visualization */
-        <div className="rounded-2xl bg-[#0e1611]/60 border border-[#1b2b21] p-6 space-y-5">
-          {spacing.map((token) => {
-            const widthPercent = Math.max(3, Math.min(100, (token.pxValue / maxPx) * 100));
-            const cssVar = `--space-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${token.value};`;
+        <div className="rounded-lg bg-surface-raised/60 border border-line-subtle overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <caption className="sr-only">
+              Spacing tokens with their declared value, proportional scale bar and pixel size.
+            </caption>
+            <thead className="bg-surface-inset border-b border-line-subtle text-content-secondary uppercase font-semibold text-[11px]">
+              <tr>
+                <th scope="col" className="p-3">Token</th>
+                <th scope="col" className="p-3">Value</th>
+                <th scope="col" className="p-3 w-full">Scale</th>
+                <th scope="col" className="p-3 text-right">Pixels</th>
+                <th scope="col" className="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line-subtle">
+              {spacing.map((token) => {
+                const widthPercent = Math.max(3, Math.min(100, (token.pxValue / maxPx) * 100));
+                const cssVar = `--space-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${token.value};`;
 
-            return (
-              <div key={token.id} className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#cbd5e1]">{token.name}</span>
-                    <span className="text-[11px] font-mono text-[#64748b]">
+                return (
+                  <tr key={token.id} className="hover:bg-surface-overlay/30 transition-colors">
+                    <th scope="row" className="p-3 text-left align-middle">
+                      <span className="flex items-center gap-2">
+                        <span className="font-bold text-content-primary">{token.name}</span>
+                        {token.role && (
+                          <Badge variant="neutral" size="sm" className="hidden sm:inline-flex">
+                            {token.role}
+                          </Badge>
+                        )}
+                      </span>
+                    </th>
+                    <td className="p-3 align-middle whitespace-nowrap text-[11px] font-mono tabular-nums text-content-muted">
                       {token.value} {token.remValue ? `(${token.remValue})` : ''}
-                    </span>
-                    {token.role && (
-                      <Badge variant="neutral" size="sm" className="hidden sm:inline-flex">
-                        {token.role}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-emerald-400">
+                    </td>
+                    <td className="p-3 align-middle">
+                      {/* Proportional Bar Graphic */}
+                      <div className="h-6 min-w-[8rem] w-full bg-surface-inset rounded-md p-1 border border-line-subtle flex items-center overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-accent to-accent-hover rounded-sm transition-all duration-300"
+                          style={{ width: `${widthPercent}%`, minWidth: `${Math.min(token.pxValue, 8)}px` }}
+                        />
+                      </div>
+                    </td>
+                    <td className="p-3 align-middle text-right font-mono text-xs font-semibold tabular-nums text-accent whitespace-nowrap">
                       {token.pxValue}px
-                    </span>
-                    <CopyButton text={cssVar} showIconOnly title={`Copy: ${cssVar}`} />
-                    <ProvenancePopover
-                      provenance={token.provenance}
-                      confidence={token.confidence}
-                      itemName={token.name}
-                      onNavigateToSource={onNavigateToSource}
-                    />
-                  </div>
-                </div>
-
-                {/* Proportional Bar Graphic */}
-                <div className="h-6 w-full bg-[#0b0f0c] rounded-lg p-1 border border-[#1b2b21]/80 flex items-center overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded transition-all duration-300 shadow-sm"
-                    style={{ width: `${widthPercent}%`, minWidth: `${Math.min(token.pxValue, 8)}px` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+                    </td>
+                    <td className="p-3 align-middle">
+                      <div className="flex items-center justify-end gap-2">
+                        <CopyButton text={cssVar} showIconOnly title={`Copy: ${cssVar}`} />
+                        <ProvenancePopover
+                          provenance={token.provenance}
+                          confidence={token.confidence}
+                          itemName={token.name}
+                          onNavigateToSource={onNavigateToSource}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ) : (
         /* Boxes Grid Visualization */
@@ -108,10 +133,10 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
           {spacing.map((token) => (
             <div
               key={token.id}
-              className="p-5 rounded-2xl bg-[#0e1611]/60 border border-[#1b2b21] hover:border-[#1b2b21] flex flex-col items-center justify-between gap-4 text-center shadow-lg"
+              className="p-5 rounded-lg bg-surface-raised/60 border border-line-subtle hover:border-line flex flex-col items-center justify-between gap-4 text-center shadow-deep transition-colors"
             >
               <div className="w-full flex items-center justify-between text-xs">
-                <span className="font-bold text-[#cbd5e1]">{token.name}</span>
+                <span className="font-bold text-content-primary">{token.name}</span>
                 <ProvenancePopover
                   provenance={token.provenance}
                   confidence={token.confidence}
@@ -121,10 +146,11 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
               </div>
 
               {/* Real box rendering */}
-              <div className="h-32 w-full flex items-center justify-center p-2 bg-[#0b0f0c] rounded-xl border border-[#1b2b21]/60">
+              <div className="h-32 w-full flex items-center justify-center p-2 bg-surface-inset rounded-md border border-line-subtle">
                 <div
-                  className="bg-emerald-500/20 border-2 border-emerald-400 rounded transition-all shadow-sm"
+                  className="bg-accent/20 border-2 border-accent rounded-sm transition-all"
                   style={{
+                    // Parsed document value: the box IS the token's measurement.
                     width: `${Math.min(token.pxValue, 100)}px`,
                     height: `${Math.min(token.pxValue, 100)}px`,
                     minWidth: '4px',
@@ -133,8 +159,8 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
                 />
               </div>
 
-              <div className="w-full flex items-center justify-between pt-2 border-t border-[#1b2b21]/80 text-xs">
-                <span className="font-mono text-emerald-400 font-semibold">{token.pxValue}px</span>
+              <div className="w-full flex items-center justify-between pt-2 border-t border-line-subtle text-xs">
+                <span className="font-mono tabular-nums text-accent font-semibold">{token.pxValue}px</span>
                 <CopyButton text={token.value} label={token.value} variant="secondary" />
               </div>
             </div>

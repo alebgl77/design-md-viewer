@@ -14,12 +14,12 @@ export const RadiusView: React.FC<RadiusViewProps> = ({ radii, onNavigateToSourc
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="pb-4 border-b border-[#1b2b21]">
-        <h2 className="text-xl font-bold text-[#cbd5e1] flex items-center gap-2">
-          <Maximize2 className="w-5 h-5 text-sky-400" />
-          Border Radius & Curvature
-        </h2>
-        <p className="text-xs text-[#94a3b8] mt-0.5">
+      <div className="pb-4 border-b border-line-subtle">
+        <h1 className="text-xl font-bold text-content-primary flex items-center gap-2">
+          <Maximize2 className="w-5 h-5 text-accent" />
+          Border Radius &amp; Curvature
+        </h1>
+        <p className="text-xs text-content-secondary mt-0.5">
           {radii.length} border radius definitions rendered onto interactive geometric cards.
         </p>
       </div>
@@ -33,13 +33,13 @@ export const RadiusView: React.FC<RadiusViewProps> = ({ radii, onNavigateToSourc
           return (
             <div
               key={token.id}
-              className="p-5 rounded-2xl bg-[#0e1611]/60 border border-[#1b2b21] hover:border-[#1b2b21] flex flex-col items-center justify-between gap-5 text-center shadow-lg transition-all"
+              className="p-5 rounded-lg bg-surface-raised/60 border border-line-subtle hover:border-line flex flex-col items-center justify-between gap-5 text-center shadow-deep transition-colors"
             >
               {/* Header */}
               <div className="w-full flex items-center justify-between">
                 <div className="text-left">
-                  <div className="font-bold text-sm text-[#cbd5e1]">{token.name}</div>
-                  <div className="text-xs text-[#94a3b8] font-mono">{token.value}</div>
+                  <div className="font-bold text-sm text-content-primary">{token.name}</div>
+                  <div className="text-xs text-content-secondary font-mono tabular-nums">{token.value}</div>
                 </div>
 
                 <ProvenancePopover
@@ -51,9 +51,10 @@ export const RadiusView: React.FC<RadiusViewProps> = ({ radii, onNavigateToSourc
               </div>
 
               {/* Real Visual Shape */}
-              <div className="h-36 w-full flex items-center justify-center p-4 bg-[#0b0f0c] rounded-xl border border-[#1b2b21]/80">
+              <div className="h-36 w-full flex items-center justify-center p-4 bg-surface-inset rounded-md border border-line-subtle">
                 <div
-                  className="w-24 h-24 bg-gradient-to-br from-sky-500/20 to-indigo-600/30 border-2 border-sky-400 flex items-center justify-center text-xs font-mono font-bold text-sky-300 shadow-md shadow-sky-500/10 transition-all"
+                  className="w-24 h-24 bg-accent/15 border-2 border-accent flex items-center justify-center text-xs font-mono font-bold tabular-nums text-accent"
+                  // Parsed document value: the curvature IS the token.
                   style={{ borderRadius: radiusCss }}
                 >
                   {token.value}
@@ -61,7 +62,7 @@ export const RadiusView: React.FC<RadiusViewProps> = ({ radii, onNavigateToSourc
               </div>
 
               {/* Footer */}
-              <div className="w-full flex items-center justify-between pt-3 border-t border-[#1b2b21]/80">
+              <div className="w-full flex items-center justify-between pt-3 border-t border-line-subtle">
                 {token.role ? (
                   <Badge variant="neutral" size="sm">
                     {token.role}

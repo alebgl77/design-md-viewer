@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Design.md Visual Explorer">
+  <title>Design.md Visual Explorer</title>
+
+  <!--
+    The mark is a hash: the character that is simultaneously the Markdown heading
+    marker and the hex-colour prefix. That double meaning is exactly the bridge
+    this tool crosses, from a written document to a resolved palette.
+    The four corner cells the hash carves out are filled as swatches, ramped.
+  -->
+
+  <!-- swatch cells, carved out by the strokes -->
+  <rect x="4"  y="4"  width="14" height="14" rx="2" fill="#10b981" opacity="1"    />
+  <rect x="46" y="4"  width="14" height="14" rx="2" fill="#10b981" opacity="0.62" />
+  <rect x="4"  y="46" width="14" height="14" rx="2" fill="#10b981" opacity="0.38" />
+  <rect x="46" y="46" width="14" height="14" rx="2" fill="#10b981" opacity="0.22" />
+
+  <!-- the hash itself -->
+  <g fill="#34d399">
+    <rect x="18" y="4"  width="6" height="56" rx="1.5" />
+    <rect x="40" y="4"  width="6" height="56" rx="1.5" />
+    <rect x="4"  y="18" width="56" height="6" rx="1.5" />
+    <rect x="4"  y="40" width="56" height="6" rx="1.5" />
+  </g>
+</svg>
