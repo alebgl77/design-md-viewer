@@ -1,0 +1,151 @@
+name: Capture screenshots
+
+# README screenshots are captured from the real application rather than mocked up, so they cannot
+# drift into showing a UI that no longer exists. Every number visible in them was produced by the
+# parser on a bundled sample.
+#
+# The PNGs are published as a build artifact. Download the artifact, drop the files into docs/, and
+# commit them; re-run this workflow whenever the interface changes materially.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/screenshots.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    name: Drive the app and capture
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.49.0
+          npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Serve the build
+        run: |
+          npx vite preview --port 4173 --strictPort &
+          for i in $(seq 1 30); do
+            if curl -sSf -o /dev/null http://localhost:4173/; then
+              echo "preview is up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "preview never came up" >&2
+          exit 1
+
+      - name: Capture
+        run: |
+          mkdir -p shots
+          cat > capture.mjs <<'SCRIPT'
+          import { chromium } from 'playwright';
+
+          const BASE = 'http://localhost:4173/';
+          const VIEWPORT = { width: 1440, height: 900 };
+
+          const browser = await chromium.launch();
+
+          /** A fresh page with the theme decided before the first paint, so nothing flashes. */
+          async function open(theme) {
+            const context = await browser.newContext({
+              viewport: VIEWPORT,
+              deviceScaleFactor: 2,
+              colorScheme: theme,
+            });
+            await context.addInitScript(t => {
+              try {
+                localStorage.setItem('dmve-theme', t);
+              } catch (e) {}
+            }, theme);
+            const page = await context.newPage();
+            await page.goto(BASE, { waitUntil: 'networkidle' });
+            await page.evaluate(() => document.fonts.ready);
+            return { context, page };
+          }
+
+          async function loadSample(page) {
+            await page.getByRole('button', { name: /ia-b2b\.fr System/ }).click();
+            // The views are lazy chunks; wait for real content rather than a fixed sleep.
+            await page.getByRole('button', { name: /^Colors/ }).waitFor({ timeout: 15000 });
+            await page.evaluate(() => document.fonts.ready);
+            await page.waitForTimeout(900);
+          }
+
+          async function gotoView(page, name) {
+            await page.getByRole('button', { name: new RegExp(`^${name}`) }).click();
+            await page.waitForTimeout(1400);
+            await page.evaluate(() => document.fonts.ready);
+          }
+
+          const shots = [];
+
+          for (const theme of ['dark', 'light']) {
+            const { context, page } = await open(theme);
+
+            // The landing screen: the whole promise in one frame.
+            await page.waitForTimeout(600);
+            await page.screenshot({ path: `shots/landing-${theme}.png` });
+            shots.push(`landing-${theme}`);
+
+            await loadSample(page);
+
+            // Overview carries the radar, which is the shot that explains the product.
+            await page.screenshot({ path: `shots/overview-${theme}.png` });
+            shots.push(`overview-${theme}`);
+
+            // Scroll the profile into frame and capture just that section.
+            const profile = page.locator('section', { hasText: 'Design System Profile' }).first();
+            if (await profile.count()) {
+              await profile.scrollIntoViewIfNeeded();
+              await page.waitForTimeout(700);
+              await profile.screenshot({ path: `shots/radar-${theme}.png` });
+              shots.push(`radar-${theme}`);
+            }
+
+            await gotoView(page, 'Colors');
+            await page.screenshot({ path: `shots/colors-${theme}.png` });
+            shots.push(`colors-${theme}`);
+
+            await gotoView(page, 'Health Audit');
+            await page.screenshot({ path: `shots/audit-${theme}.png` });
+            shots.push(`audit-${theme}`);
+
+            await gotoView(page, 'Source');
+            await page.screenshot({ path: `shots/source-${theme}.png` });
+            shots.push(`source-${theme}`);
+
+            await context.close();
+          }
+
+          await browser.close();
+          console.log('captured:', shots.join(', '));
+          SCRIPT
+          node capture.mjs
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots/*.png
+          if-no-files-found: error
