@@ -34,7 +34,10 @@ function hasBalancedParens(value: string): boolean {
 
 /** Collapses a value onto a single line so it cannot forge new markdown blocks. */
 function toSingleLine(value: string): string {
-  return value.replace(/[\u0000-\u001F\u007F]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return value
+    .replace(/[\u0000-\u001F\u007F]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
@@ -60,7 +63,10 @@ function toCodeCell(value: string): string {
 }
 
 function toTokenKey(name: string, fallback: string): string {
-  const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const key = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
   return key || fallback;
 }
 
@@ -85,7 +91,7 @@ function pushDeclaration(
   indent: string,
   varName: string,
   rawValue: string,
-  comment?: string,
+  comment?: string
 ): void {
   const value = sanitizeCssValue(rawValue);
   if (!value) return;
@@ -95,7 +101,7 @@ function pushDeclaration(
 
 function buildTokenMap(
   tokens: Array<{ name: string; value: string }>,
-  fallback: string,
+  fallback: string
 ): Record<string, string> {
   const map: Record<string, string> = Object.create(null);
   const seen = new Set<string>();
@@ -143,73 +149,94 @@ export function exportToJson(system: DesignSystem): string {
     },
     // Token ids are keyed with a null-prototype accumulator: a plain object
     // would route an id of "__proto__" to the prototype setter and drop it.
-    colors: system.colors.reduce((acc, col) => {
-      acc[col.id] = {
-        $value: col.hex,
-        $type: 'color',
-        $description: col.role || col.name,
-        rgb: col.rgb,
-        hsl: col.hsl,
-        group: col.paletteGroup,
-        aliases: col.aliases,
-        confidence: col.confidence,
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
-    typography: system.typography.reduce((acc, typo) => {
-      acc[typo.id] = {
-        $type: 'typography',
-        $value: {
-          fontFamily: typo.fontFamily,
-          fontSize: typo.fontSize,
-          fontWeight: typo.fontWeight,
-          lineHeight: typo.lineHeight,
-          letterSpacing: typo.letterSpacing,
-        },
-        $description: typo.role || typo.name,
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
-    spacing: system.spacing.reduce((acc, sp) => {
-      acc[sp.id] = {
-        $type: 'dimension',
-        $value: sp.value,
-        px: sp.pxValue,
-        rem: sp.remValue,
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
-    radius: system.radii.reduce((acc, rad) => {
-      acc[rad.id] = {
-        $type: 'dimension',
-        $value: rad.value,
-        px: rad.pxValue,
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
-    shadows: system.shadows.reduce((acc, shd) => {
-      acc[shd.id] = {
-        $type: 'shadow',
-        $value: shd.value,
-        elevation: shd.elevationLevel,
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
-    borders: system.borders.reduce((acc, brd) => {
-      acc[brd.id] = {
-        $type: 'border',
-        $value: `${brd.width} ${brd.style} ${brd.color || ''}`.trim(),
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
-    breakpoints: system.breakpoints.reduce((acc, bp) => {
-      acc[bp.id] = {
-        $type: 'breakpoint',
-        $value: bp.minWidth || `${bp.pxValue}px`,
-        px: bp.pxValue,
-      };
-      return acc;
-    }, Object.create(null) as Record<string, any>),
+    colors: system.colors.reduce(
+      (acc, col) => {
+        acc[col.id] = {
+          $value: col.hex,
+          $type: 'color',
+          $description: col.role || col.name,
+          rgb: col.rgb,
+          hsl: col.hsl,
+          group: col.paletteGroup,
+          aliases: col.aliases,
+          confidence: col.confidence,
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
+    typography: system.typography.reduce(
+      (acc, typo) => {
+        acc[typo.id] = {
+          $type: 'typography',
+          $value: {
+            fontFamily: typo.fontFamily,
+            fontSize: typo.fontSize,
+            fontWeight: typo.fontWeight,
+            lineHeight: typo.lineHeight,
+            letterSpacing: typo.letterSpacing,
+          },
+          $description: typo.role || typo.name,
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
+    spacing: system.spacing.reduce(
+      (acc, sp) => {
+        acc[sp.id] = {
+          $type: 'dimension',
+          $value: sp.value,
+          px: sp.pxValue,
+          rem: sp.remValue,
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
+    radius: system.radii.reduce(
+      (acc, rad) => {
+        acc[rad.id] = {
+          $type: 'dimension',
+          $value: rad.value,
+          px: rad.pxValue,
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
+    shadows: system.shadows.reduce(
+      (acc, shd) => {
+        acc[shd.id] = {
+          $type: 'shadow',
+          $value: shd.value,
+          elevation: shd.elevationLevel,
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
+    borders: system.borders.reduce(
+      (acc, brd) => {
+        acc[brd.id] = {
+          $type: 'border',
+          $value: `${brd.width} ${brd.style} ${brd.color || ''}`.trim(),
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
+    breakpoints: system.breakpoints.reduce(
+      (acc, bp) => {
+        acc[bp.id] = {
+          $type: 'breakpoint',
+          $value: bp.minWidth || `${bp.pxValue}px`,
+          px: bp.pxValue,
+        };
+        return acc;
+      },
+      Object.create(null) as Record<string, any>
+    ),
     components: system.components.map(comp => ({
       name: comp.name,
       description: comp.description,
@@ -239,12 +266,7 @@ export function exportToJson(system: DesignSystem): string {
 }
 
 export function exportToTailwindV4(system: DesignSystem): string {
-  const lines: string[] = [
-    '/* Tailwind CSS v4 Theme Extension */',
-    '@import "tailwindcss";',
-    '',
-    '@theme {',
-  ];
+  const lines: string[] = ['/* Tailwind CSS v4 Theme Extension */', '@import "tailwindcss";', '', '@theme {'];
 
   if (system.colors.length > 0) {
     lines.push('  /* --- Colors --- */');
@@ -337,7 +359,7 @@ export function exportToTypeScriptTheme(system: DesignSystem): string {
 
   const buildCamelMap = (
     tokens: Array<{ name: string; value: string }>,
-    fallback: string,
+    fallback: string
   ): Record<string, string> => {
     const map: Record<string, string> = Object.create(null);
     const seen = new Set<string>();
@@ -347,9 +369,18 @@ export function exportToTypeScriptTheme(system: DesignSystem): string {
     return map;
   };
 
-  const colorsObj = buildCamelMap(system.colors.map(c => ({ name: c.name, value: c.hex })), 'color');
-  const spacingObj = buildCamelMap(system.spacing.map(s => ({ name: s.name, value: s.value })), 'space');
-  const radiusObj = buildCamelMap(system.radii.map(r => ({ name: r.name, value: r.value })), 'radius');
+  const colorsObj = buildCamelMap(
+    system.colors.map(c => ({ name: c.name, value: c.hex })),
+    'color'
+  );
+  const spacingObj = buildCamelMap(
+    system.spacing.map(s => ({ name: s.name, value: s.value })),
+    'space'
+  );
+  const radiusObj = buildCamelMap(
+    system.radii.map(r => ({ name: r.name, value: r.value })),
+    'radius'
+  );
 
   return `/**
  * TypeScript Design Tokens Definition
@@ -400,9 +431,18 @@ export function exportToScssVariables(system: DesignSystem): string {
 }
 
 export function exportToTailwindConfig(system: DesignSystem): string {
-  const colors = buildTokenMap(system.colors.map(c => ({ name: c.name, value: c.hex })), 'color');
-  const spacing = buildTokenMap(system.spacing.map(s => ({ name: s.name, value: s.value })), 'space');
-  const radii = buildTokenMap(system.radii.map(r => ({ name: r.name, value: r.value })), 'radius');
+  const colors = buildTokenMap(
+    system.colors.map(c => ({ name: c.name, value: c.hex })),
+    'color'
+  );
+  const spacing = buildTokenMap(
+    system.spacing.map(s => ({ name: s.name, value: s.value })),
+    'space'
+  );
+  const radii = buildTokenMap(
+    system.radii.map(r => ({ name: r.name, value: r.value })),
+    'radius'
+  );
 
   return `/** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -424,14 +464,15 @@ export function exportToAiPromptRules(system: DesignSystem): string {
     .map(c => `- ${toSingleLine(c.name)}: ${toSingleLine(c.hex)} (${toSingleLine(c.role || c.paletteGroup)})`)
     .join('\n');
   const typoList = system.typography
-    .map(t => `- ${toSingleLine(t.name)}: ${toSingleLine(t.fontSize)}, weight ${toSingleLine(String(t.fontWeight))} (${toSingleLine(t.fontFamily)})`)
+    .map(
+      t =>
+        `- ${toSingleLine(t.name)}: ${toSingleLine(t.fontSize)}, weight ${toSingleLine(String(t.fontWeight))} (${toSingleLine(t.fontFamily)})`
+    )
     .join('\n');
   const spaceList = system.spacing
     .map(s => `- ${toSingleLine(s.name)}: ${toSingleLine(s.value)} (${s.pxValue}px)`)
     .join('\n');
-  const radiusList = system.radii
-    .map(r => `- ${toSingleLine(r.name)}: ${toSingleLine(r.value)}`)
-    .join('\n');
+  const radiusList = system.radii.map(r => `- ${toSingleLine(r.name)}: ${toSingleLine(r.value)}`).join('\n');
   const compList = system.components
     .map(c => `- ${toSingleLine(c.name)}: ${toSingleLine(c.description || 'UI component')}`)
     .join('\n');
@@ -519,7 +560,9 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
     lines.push(`| Name | HEX | RGB | Role |`);
     lines.push(`| :--- | :--- | :--- | :--- |`);
     system.colors.forEach(c => {
-      lines.push(`| ${toTableCell(c.name)} | \`${toCodeCell(c.hex)}\` | \`${toCodeCell(c.rgb)}\` | ${toTableCell(c.role || c.paletteGroup)} |`);
+      lines.push(
+        `| ${toTableCell(c.name)} | \`${toCodeCell(c.hex)}\` | \`${toCodeCell(c.rgb)}\` | ${toTableCell(c.role || c.paletteGroup)} |`
+      );
     });
     lines.push('');
   }
@@ -529,7 +572,9 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
     lines.push(`| Level | Font Family | Size | Weight | Line Height |`);
     lines.push(`| :--- | :--- | :--- | :--- | :--- |`);
     system.typography.forEach(t => {
-      lines.push(`| ${toTableCell(t.name)} | ${toTableCell(t.fontFamily)} | \`${toCodeCell(t.fontSize)}\` | ${toTableCell(String(t.fontWeight))} | ${toTableCell(t.lineHeight || '-')} |`);
+      lines.push(
+        `| ${toTableCell(t.name)} | ${toTableCell(t.fontFamily)} | \`${toCodeCell(t.fontSize)}\` | ${toTableCell(String(t.fontWeight))} | ${toTableCell(t.lineHeight || '-')} |`
+      );
     });
     lines.push('');
   }
@@ -539,7 +584,9 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
     lines.push(`| Token | Value | Pixels | Role |`);
     lines.push(`| :--- | :--- | :--- | :--- |`);
     system.spacing.forEach(s => {
-      lines.push(`| ${toTableCell(s.name)} | \`${toCodeCell(s.value)}\` | ${s.pxValue}px | ${toTableCell(s.role || '-')} |`);
+      lines.push(
+        `| ${toTableCell(s.name)} | \`${toCodeCell(s.value)}\` | ${s.pxValue}px | ${toTableCell(s.role || '-')} |`
+      );
     });
     lines.push('');
   }
@@ -581,7 +628,11 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
       if (c.description) lines.push(`${c.description}\n`);
       if (c.variants && c.variants.length > 0) {
         lines.push(`#### Variants\n`);
-        c.variants.forEach(v => lines.push(`* **${toSingleLine(v.name)}**${v.description ? `: ${toSingleLine(v.description)}` : ''}`));
+        c.variants.forEach(v =>
+          lines.push(
+            `* **${toSingleLine(v.name)}**${v.description ? `: ${toSingleLine(v.description)}` : ''}`
+          )
+        );
         lines.push('');
       }
       if (c.states && c.states.length > 0) {
@@ -593,7 +644,9 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
   if (system.accessibility.length > 0) {
     lines.push(`## Accessibility Guidelines\n`);
     system.accessibility.forEach(a => {
-      lines.push(`* **${toSingleLine(a.title)}** (${toSingleLine(a.category)}${a.wcagLevel ? `, WCAG ${toSingleLine(a.wcagLevel)}` : ''}): ${toSingleLine(a.description)}`);
+      lines.push(
+        `* **${toSingleLine(a.title)}** (${toSingleLine(a.category)}${a.wcagLevel ? `, WCAG ${toSingleLine(a.wcagLevel)}` : ''}): ${toSingleLine(a.description)}`
+      );
     });
     lines.push('');
   }

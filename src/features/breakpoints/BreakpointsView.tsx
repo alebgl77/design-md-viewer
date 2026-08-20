@@ -11,15 +11,13 @@ interface BreakpointsViewProps {
   onNavigateToSource?: (lineNumber?: number) => void;
 }
 
-export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
-  breakpoints,
-  onNavigateToSource,
-}) => {
+export const BreakpointsView: React.FC<BreakpointsViewProps> = ({ breakpoints, onNavigateToSource }) => {
   const [simulatedWidth, setSimulatedWidth] = useState(1024);
 
   // Find active breakpoint for current simulated width
   const sortedBreakpoints = [...breakpoints].sort((a, b) => a.pxValue - b.pxValue);
-  const activeBreakpoint = [...sortedBreakpoints].reverse().find(b => simulatedWidth >= b.pxValue) || sortedBreakpoints[0];
+  const activeBreakpoint =
+    [...sortedBreakpoints].reverse().find(b => simulatedWidth >= b.pxValue) || sortedBreakpoints[0];
 
   function getDeviceIcon(name: string, px: number) {
     if (px < 768 || name.includes('mobile') || name.includes('sm')) return Smartphone;
@@ -69,7 +67,7 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
           min={320}
           max={1920}
           value={simulatedWidth}
-          onChange={(e) => setSimulatedWidth(parseInt(e.target.value, 10))}
+          onChange={e => setSimulatedWidth(parseInt(e.target.value, 10))}
           aria-label="Simulated viewport width in pixels"
           className="w-full h-2 bg-surface-inset rounded-sm appearance-none cursor-pointer accent-accent"
         />
@@ -104,15 +102,25 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
           </caption>
           <thead className="bg-surface-inset border-b border-line-subtle text-content-secondary uppercase font-semibold text-[11px]">
             <tr>
-              <th scope="col" className="p-3">Breakpoint</th>
-              <th scope="col" className="p-3 text-right">Min width</th>
-              <th scope="col" className="p-3">Media query</th>
-              <th scope="col" className="p-3">Role</th>
-              <th scope="col" className="p-3 text-right">Actions</th>
+              <th scope="col" className="p-3">
+                Breakpoint
+              </th>
+              <th scope="col" className="p-3 text-right">
+                Min width
+              </th>
+              <th scope="col" className="p-3">
+                Media query
+              </th>
+              <th scope="col" className="p-3">
+                Role
+              </th>
+              <th scope="col" className="p-3 text-right">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line-subtle">
-            {sortedBreakpoints.map((token) => {
+            {sortedBreakpoints.map(token => {
               const Icon = getDeviceIcon(token.name, token.pxValue);
               const mediaQuery = `@media (min-width: ${token.pxValue}px) { ... }`;
               const isActive = activeBreakpoint?.id === token.id;
@@ -132,7 +140,11 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
                       </span>
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-sm text-content-primary">{token.name}</span>
-                        {isActive && <Badge variant="brand" size="sm">Active</Badge>}
+                        {isActive && (
+                          <Badge variant="brand" size="sm">
+                            Active
+                          </Badge>
+                        )}
                       </span>
                     </span>
                   </th>
@@ -147,7 +159,11 @@ export const BreakpointsView: React.FC<BreakpointsViewProps> = ({
                   </td>
                   <td className="p-3 align-middle">
                     <div className="flex items-center justify-end gap-2">
-                      <CopyButton text={`@media (min-width: ${token.pxValue}px)`} label="Query" variant="secondary" />
+                      <CopyButton
+                        text={`@media (min-width: ${token.pxValue}px)`}
+                        label="Query"
+                        variant="secondary"
+                      />
                       <ProvenancePopover
                         provenance={token.provenance}
                         confidence={token.confidence}

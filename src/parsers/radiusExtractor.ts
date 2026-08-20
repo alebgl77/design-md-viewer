@@ -2,20 +2,16 @@ import { RadiusToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 import { parsePxValue } from '../normalizers/unitNormalizer';
 
-export function extractRadii(
-  structure: ParsedMarkdownStructure
-): RadiusToken[] {
+export function extractRadii(structure: ParsedMarkdownStructure): RadiusToken[] {
   const radii: RadiusToken[] = [];
   const seen = new Set<string>();
 
-  function addRadius(
-    name: string,
-    value: string,
-    provenance: Provenance,
-    role?: string
-  ) {
+  function addRadius(name: string, value: string, provenance: Provenance, role?: string) {
     const px = parsePxValue(value);
-    const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
+    const cleanName = name
+      .replace(/^(--|\$)/, '')
+      .replace(/[-_]/g, ' ')
+      .trim();
     const dedupeKey = `${cleanName.toLowerCase()}-${px}`;
     if (seen.has(dedupeKey)) return;
     seen.add(dedupeKey);
@@ -36,7 +32,9 @@ export function extractRadii(
     const lines = block.code.split('\n');
     lines.forEach((line, idx) => {
       const lineNum = block.startLine + idx + 1;
-      const radiusVarMatch = line.match(/^\s*(--(?:radius|border-radius|rounded)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
+      const radiusVarMatch = line.match(
+        /^\s*(--(?:radius|border-radius|rounded)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i
+      );
       if (radiusVarMatch) {
         addRadius(
           radiusVarMatch[1].replace(/^--(?:radius-|border-radius-|rounded-)/, ''),
@@ -66,7 +64,8 @@ export function extractRadii(
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
         const nameVal = nameIdx !== -1 ? row[nameIdx] : row[0];
-        const valVal = valIdx !== -1 ? row[valIdx] : (row.find(c => /[\d.]+(?:px|rem|em)|full|none/i.test(c)) || row[1]);
+        const valVal =
+          valIdx !== -1 ? row[valIdx] : row.find(c => /[\d.]+(?:px|rem|em)|full|none/i.test(c)) || row[1];
         const roleVal = roleIdx !== -1 ? row[roleIdx] : undefined;
 
         if (nameVal && valVal) {
@@ -90,7 +89,9 @@ export function extractRadii(
   for (const item of structure.listItems) {
     const isRadiusSection = item.headingPath.some(h => /radius|radii|rounded|corner|border-radius/i.test(h));
     if (isRadiusSection) {
-      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+(?:px|rem|em)|full|none|[\d.]+)`*(?:\s*[-—(]\s*(.*?)\)?)?$/i);
+      const kvMatch = item.text.match(
+        /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+(?:px|rem|em)|full|none|[\d.]+)`*(?:\s*[-—(]\s*(.*?)\)?)?$/i
+      );
       if (kvMatch) {
         addRadius(
           kvMatch[1].trim(),

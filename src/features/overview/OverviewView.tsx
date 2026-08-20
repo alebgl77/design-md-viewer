@@ -35,7 +35,12 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
     { category: 'Spacing', count: system.spacing.length, label: 'Spacing Units', icon: Ruler },
     { category: 'Radius', count: system.radii.length, label: 'Corner Radii', icon: Maximize2 },
     { category: 'Components', count: system.components.length, label: 'UI Components', icon: Component },
-    { category: 'Accessibility', count: system.accessibility.length, label: 'A11y Guidelines', icon: ShieldCheck },
+    {
+      category: 'Accessibility',
+      count: system.accessibility.length,
+      label: 'A11y Guidelines',
+      icon: ShieldCheck,
+    },
   ];
 
   return (
@@ -83,7 +88,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
                 </button>
               </div>
               <ul className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2.5">
-                {overview.primaryColors.map((color) => (
+                {overview.primaryColors.map(color => (
                   <li
                     key={color.id}
                     className="group relative flex flex-col rounded-lg overflow-hidden bg-surface-inset border border-line-subtle transition-transform hover:-translate-y-0.5"
@@ -110,7 +115,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {metrics
-          .filter((metric) => metric.count > 0)
+          .filter(metric => metric.count > 0)
           .map(({ category, count, label, icon: Icon }) => (
             <button
               key={category}
@@ -177,9 +182,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
                 <Quote className="w-4 h-4 text-accent" />
                 <span>Visual Atmosphere &amp; Direction</span>
               </h2>
-              <p className="text-content-secondary text-sm leading-relaxed italic">
-                "{overview.philosophy}"
-              </p>
+              <p className="text-content-secondary text-sm leading-relaxed italic">"{overview.philosophy}"</p>
             </section>
           )}
 

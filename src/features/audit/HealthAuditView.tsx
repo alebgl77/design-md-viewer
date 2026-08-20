@@ -16,7 +16,12 @@ const SEVERITY_PRESENTATION: Record<
   AuditIssue['type'],
   { label: string; icon: typeof AlertCircle; tone: string; badge: 'error' | 'warning' | 'neutral' }
 > = {
-  error: { label: 'Error', icon: AlertCircle, tone: 'bg-status-danger/15 text-status-danger', badge: 'error' },
+  error: {
+    label: 'Error',
+    icon: AlertCircle,
+    tone: 'bg-status-danger/15 text-status-danger',
+    badge: 'error',
+  },
   warning: {
     label: 'Warning',
     icon: AlertTriangle,
@@ -42,7 +47,7 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
 
   const filteredIssues = useMemo(
     () =>
-      report.issues.filter((issue) => {
+      report.issues.filter(issue => {
         if (selectedFilter === 'all') return true;
         return issue.category === selectedFilter || issue.type === selectedFilter;
       }),
@@ -59,7 +64,11 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
   const metrics: { label: string; value: string; tone: string }[] = [
     { label: 'Passed Checks', value: `${report.metrics.passedChecks}`, tone: 'text-status-success' },
     { label: 'Warnings', value: `${report.metrics.warningCount}`, tone: 'text-status-warning' },
-    { label: 'Near-Duplicates', value: `${report.metrics.nearDuplicatesFound}`, tone: 'text-content-primary' },
+    {
+      label: 'Near-Duplicates',
+      value: `${report.metrics.nearDuplicatesFound}`,
+      tone: 'text-content-primary',
+    },
     { label: 'Grid Compliance', value: `${report.metrics.gridCompliancePercent}%`, tone: 'text-accent' },
   ];
 
@@ -72,7 +81,8 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
           Design System Health &amp; Linter Audit
         </h1>
         <p className="text-xs text-content-muted mt-0.5">
-          Automated linting for WCAG accessibility, duplicate token consolidation, grid compliance, and completeness.
+          Automated linting for WCAG accessibility, duplicate token consolidation, grid compliance, and
+          completeness.
         </p>
       </div>
 
@@ -96,18 +106,17 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
               GRADE_STYLES[report.grade] ?? GRADE_STYLES.B
             )}
           >
-            Grade {report.grade} • {report.grade.startsWith('A') ? 'Production Ready' : 'Optimization Recommended'}
+            Grade {report.grade} •{' '}
+            {report.grade.startsWith('A') ? 'Production Ready' : 'Optimization Recommended'}
           </div>
         </div>
 
         {/* Metrics Grid */}
         <div className="md:col-span-8 flex flex-col justify-center space-y-4">
-          <p className="text-xs sm:text-sm text-content-secondary leading-relaxed">
-            {report.summary}
-          </p>
+          <p className="text-xs sm:text-sm text-content-secondary leading-relaxed">{report.summary}</p>
 
           <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            {metrics.map((metric) => (
+            {metrics.map(metric => (
               <div key={metric.label} className="p-3 rounded-md bg-surface-inset border border-line-subtle">
                 <dt className="text-[11px] text-content-muted mb-0.5">{metric.label}</dt>
                 <dd className={clsx('text-lg font-bold tabular-nums', metric.tone)}>{metric.value}</dd>
@@ -119,7 +128,7 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-        {filters.map((filter) => {
+        {filters.map(filter => {
           const isActive = selectedFilter === filter.id;
           return (
             <button
@@ -145,11 +154,13 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
         <div className="p-8 rounded-lg bg-surface-raised border border-line text-center space-y-2">
           <CheckCircle2 className="w-8 h-8 text-status-success mx-auto" />
           <div className="font-bold text-sm text-content-primary">Zero issues detected in this category!</div>
-          <p className="text-xs text-content-muted">Your design tokens adhere strictly to system conventions.</p>
+          <p className="text-xs text-content-muted">
+            Your design tokens adhere strictly to system conventions.
+          </p>
         </div>
       ) : (
         <ul className="space-y-3">
-          {filteredIssues.map((issue) => {
+          {filteredIssues.map(issue => {
             const severity = SEVERITY_PRESENTATION[issue.type];
             const Icon = severity.icon;
 
@@ -178,13 +189,13 @@ export const HealthAuditView: React.FC<HealthAuditViewProps> = ({ system }) => {
                       </span>
                     </div>
 
-                    <p className="text-xs text-content-secondary leading-relaxed">
-                      {issue.description}
-                    </p>
+                    <p className="text-xs text-content-secondary leading-relaxed">{issue.description}</p>
 
                     <div className="text-[11px] text-accent font-medium pt-1 flex items-center gap-1.5">
                       <Sparkles className="w-3 h-3 text-accent shrink-0" aria-hidden="true" />
-                      <span><strong>Fix suggestion:</strong> {issue.recommendation}</span>
+                      <span>
+                        <strong>Fix suggestion:</strong> {issue.recommendation}
+                      </span>
                     </div>
                   </div>
                 </div>

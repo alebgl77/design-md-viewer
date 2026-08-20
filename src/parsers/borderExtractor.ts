@@ -1,9 +1,7 @@
 import { BorderToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 
-export function extractBorders(
-  structure: ParsedMarkdownStructure
-): BorderToken[] {
+export function extractBorders(structure: ParsedMarkdownStructure): BorderToken[] {
   const borders: BorderToken[] = [];
   const seen = new Set<string>();
 
@@ -15,7 +13,10 @@ export function extractBorders(
     provenance?: Provenance,
     role?: string
   ) {
-    const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
+    const cleanName = name
+      .replace(/^(--|\$)/, '')
+      .replace(/[-_]/g, ' ')
+      .trim();
     if (seen.has(cleanName.toLowerCase())) return;
     seen.add(cleanName.toLowerCase());
 
@@ -73,7 +74,7 @@ export function extractBorders(
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
         const nameVal = nameIdx !== -1 ? row[nameIdx] : row[0];
-        const widthVal = widthIdx !== -1 ? row[widthIdx] : (row.find(c => /[\d.]+px/i.test(c)) || '1px');
+        const widthVal = widthIdx !== -1 ? row[widthIdx] : row.find(c => /[\d.]+px/i.test(c)) || '1px';
         const styleVal = styleIdx !== -1 ? row[styleIdx] : 'solid';
         const colorVal = colorIdx !== -1 ? row[colorIdx] : undefined;
 
@@ -99,20 +100,16 @@ export function extractBorders(
   for (const item of structure.listItems) {
     const isBorderSection = item.headingPath.some(h => /border|stroke|divider/i.test(h));
     if (isBorderSection) {
-      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+px)(?:\s+([a-zA-Z]+))?(?:\s+(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)))?[`*]*/i);
+      const kvMatch = item.text.match(
+        /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+px)(?:\s+([a-zA-Z]+))?(?:\s+(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)))?[`*]*/i
+      );
       if (kvMatch) {
-        addBorder(
-          kvMatch[1].trim(),
-          kvMatch[2].trim(),
-          kvMatch[3]?.trim() || 'solid',
-          kvMatch[4]?.trim(),
-          {
-            sectionTitle: item.headingPath[item.headingPath.length - 1],
-            headingPath: item.headingPath,
-            lineNumber: item.lineNumber,
-            rawSourceSnippet: item.raw,
-          }
-        );
+        addBorder(kvMatch[1].trim(), kvMatch[2].trim(), kvMatch[3]?.trim() || 'solid', kvMatch[4]?.trim(), {
+          sectionTitle: item.headingPath[item.headingPath.length - 1],
+          headingPath: item.headingPath,
+          lineNumber: item.lineNumber,
+          rawSourceSnippet: item.raw,
+        });
       }
     }
   }

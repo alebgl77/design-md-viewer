@@ -23,47 +23,37 @@ import { Menu, X } from 'lucide-react';
   NAMED export: the view modules keep their existing public API untouched.
 */
 const OverviewView = lazy(() =>
-  import('./features/overview/OverviewView').then((m) => ({ default: m.OverviewView }))
+  import('./features/overview/OverviewView').then(m => ({ default: m.OverviewView }))
 );
-const ColorView = lazy(() =>
-  import('./features/colors/ColorView').then((m) => ({ default: m.ColorView }))
-);
+const ColorView = lazy(() => import('./features/colors/ColorView').then(m => ({ default: m.ColorView })));
 const TypographyView = lazy(() =>
-  import('./features/typography/TypographyView').then((m) => ({ default: m.TypographyView }))
+  import('./features/typography/TypographyView').then(m => ({ default: m.TypographyView }))
 );
 const SpacingView = lazy(() =>
-  import('./features/spacing/SpacingView').then((m) => ({ default: m.SpacingView }))
+  import('./features/spacing/SpacingView').then(m => ({ default: m.SpacingView }))
 );
-const RadiusView = lazy(() =>
-  import('./features/radius/RadiusView').then((m) => ({ default: m.RadiusView }))
-);
+const RadiusView = lazy(() => import('./features/radius/RadiusView').then(m => ({ default: m.RadiusView })));
 const ShadowsView = lazy(() =>
-  import('./features/shadows/ShadowsView').then((m) => ({ default: m.ShadowsView }))
+  import('./features/shadows/ShadowsView').then(m => ({ default: m.ShadowsView }))
 );
 const BordersView = lazy(() =>
-  import('./features/borders/BordersView').then((m) => ({ default: m.BordersView }))
+  import('./features/borders/BordersView').then(m => ({ default: m.BordersView }))
 );
 const BreakpointsView = lazy(() =>
-  import('./features/breakpoints/BreakpointsView').then((m) => ({ default: m.BreakpointsView }))
+  import('./features/breakpoints/BreakpointsView').then(m => ({ default: m.BreakpointsView }))
 );
 const ComponentsView = lazy(() =>
-  import('./features/components/ComponentsView').then((m) => ({ default: m.ComponentsView }))
+  import('./features/components/ComponentsView').then(m => ({ default: m.ComponentsView }))
 );
-const MotionView = lazy(() =>
-  import('./features/motion/MotionView').then((m) => ({ default: m.MotionView }))
-);
+const MotionView = lazy(() => import('./features/motion/MotionView').then(m => ({ default: m.MotionView })));
 const AccessibilityView = lazy(() =>
-  import('./features/accessibility/AccessibilityView').then((m) => ({ default: m.AccessibilityView }))
+  import('./features/accessibility/AccessibilityView').then(m => ({ default: m.AccessibilityView }))
 );
-const TokensView = lazy(() =>
-  import('./features/tokens/TokensView').then((m) => ({ default: m.TokensView }))
-);
+const TokensView = lazy(() => import('./features/tokens/TokensView').then(m => ({ default: m.TokensView })));
 const HealthAuditView = lazy(() =>
-  import('./features/audit/HealthAuditView').then((m) => ({ default: m.HealthAuditView }))
+  import('./features/audit/HealthAuditView').then(m => ({ default: m.HealthAuditView }))
 );
-const SourceView = lazy(() =>
-  import('./features/source/SourceView').then((m) => ({ default: m.SourceView }))
-);
+const SourceView = lazy(() => import('./features/source/SourceView').then(m => ({ default: m.SourceView })));
 
 /**
  * Suspense fallback shaped like the views it stands in for — a title block, a
@@ -87,11 +77,8 @@ const ViewSkeleton: React.FC = () => (
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[0, 1, 2, 3, 4, 5].map((index) => (
-          <div
-            key={index}
-            className="rounded-lg border border-line-subtle bg-surface-raised p-4 space-y-3"
-          >
+        {[0, 1, 2, 3, 4, 5].map(index => (
+          <div key={index} className="rounded-lg border border-line-subtle bg-surface-raised p-4 space-y-3">
             <div className="h-16 rounded-md bg-line-subtle" />
             <div className="h-3.5 w-2/3 rounded-sm bg-line-subtle" />
             <div className="h-3 w-1/3 rounded-sm bg-line-subtle" />
@@ -244,7 +231,7 @@ export function App() {
           <DynamicSidebar
             categories={system.overview.categoriesDetected}
             activeCategory={activeCategory}
-            onSelectCategory={(cat) => {
+            onSelectCategory={cat => {
               setActiveCategory(cat);
               setHighlightLine(null);
             }}
@@ -280,7 +267,10 @@ export function App() {
                 )}
 
                 {activeCategory === 'Typography' && (
-                  <TypographyView typography={system.typography} onNavigateToSource={handleNavigateToSource} />
+                  <TypographyView
+                    typography={system.typography}
+                    onNavigateToSource={handleNavigateToSource}
+                  />
                 )}
 
                 {activeCategory === 'Spacing' && (
@@ -300,11 +290,17 @@ export function App() {
                 )}
 
                 {activeCategory === 'Breakpoints' && (
-                  <BreakpointsView breakpoints={system.breakpoints} onNavigateToSource={handleNavigateToSource} />
+                  <BreakpointsView
+                    breakpoints={system.breakpoints}
+                    onNavigateToSource={handleNavigateToSource}
+                  />
                 )}
 
                 {activeCategory === 'Components' && (
-                  <ComponentsView components={system.components} onNavigateToSource={handleNavigateToSource} />
+                  <ComponentsView
+                    components={system.components}
+                    onNavigateToSource={handleNavigateToSource}
+                  />
                 )}
 
                 {activeCategory === 'Motion' && (
@@ -312,7 +308,10 @@ export function App() {
                 )}
 
                 {activeCategory === 'Accessibility' && (
-                  <AccessibilityView accessibility={system.accessibility} onNavigateToSource={handleNavigateToSource} />
+                  <AccessibilityView
+                    accessibility={system.accessibility}
+                    onNavigateToSource={handleNavigateToSource}
+                  />
                 )}
 
                 {activeCategory === 'Tokens' && (
@@ -352,14 +351,10 @@ export function App() {
             isOpen={isAiSettingsOpen}
             onClose={() => setIsAiSettingsOpen(false)}
             system={system}
-            onEnrichmentComplete={(enriched) => setSystem(enriched)}
+            onEnrichmentComplete={enriched => setSystem(enriched)}
           />
 
-          <ExportModal
-            isOpen={isExportOpen}
-            onClose={() => setIsExportOpen(false)}
-            system={system}
-          />
+          <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} system={system} />
         </>
       )}
     </div>

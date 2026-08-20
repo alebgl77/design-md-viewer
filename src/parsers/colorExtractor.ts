@@ -1,6 +1,11 @@
 import { ColorContrastReport, ColorToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
-import { normalizeColorValue, classifyColorRole, hexToRgb, getLuminance } from '../normalizers/colorNormalizer';
+import {
+  normalizeColorValue,
+  classifyColorRole,
+  hexToRgb,
+  getLuminance,
+} from '../normalizers/colorNormalizer';
 import { isSafeCssValue } from './safety';
 
 const MAX_NAME_LENGTH = 40;
@@ -26,9 +31,10 @@ const CSS_PROPERTY_NAMES = new Set([
 const BACKGROUND_VARIABLE = /^(?:--|\$)(?:color[-_])?(?:bg|background|canvas|surface[-_]base)$/i;
 const BACKGROUND_NAME = /^bg$|background|canvas|surface base/i;
 
-export function extractColors(
-  structure: ParsedMarkdownStructure
-): { colors: ColorToken[]; tokenVars: Record<string, string> } {
+export function extractColors(structure: ParsedMarkdownStructure): {
+  colors: ColorToken[];
+  tokenVars: Record<string, string>;
+} {
   const colors: ColorToken[] = [];
   const tokenVars: Record<string, string> = {};
   const indexByHex = new Map<string, number>();
@@ -115,7 +121,9 @@ export function extractColors(
       lines.forEach((line, idx) => {
         const lineNum = block.startLine + idx + 1;
         // Matches: --color-primary: #6366f1; or $brand-red: rgba(239, 68, 68, 1);
-        const cssVarMatch = line.match(/^\s*([-$a-zA-Z0-9_-]+)\s*:\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|[a-zA-Z]+)\s*;?/);
+        const cssVarMatch = line.match(
+          /^\s*([-$a-zA-Z0-9_-]+)\s*:\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)|[a-zA-Z]+)\s*;?/
+        );
         if (cssVarMatch) {
           const varName = cssVarMatch[1];
           const rawVal = cssVarMatch[2];
@@ -158,8 +166,11 @@ export function extractColors(
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2; // header + separator
         const nameVal = nameColIdx !== -1 ? row[nameColIdx] : row[0];
-        const colorVal = valColIdx !== -1 ? row[valColIdx] : (row.find(cell => /(#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\()/i.test(cell)) || row[1]);
-        const descVal = descColIdx !== -1 ? row[descColIdx] : (row[2] || '');
+        const colorVal =
+          valColIdx !== -1
+            ? row[valColIdx]
+            : row.find(cell => /(#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\()/i.test(cell)) || row[1];
+        const descVal = descColIdx !== -1 ? row[descColIdx] : row[2] || '';
 
         if (nameVal && colorVal) {
           const cleanColor = colorVal.replace(/[`*]/g, '').trim();
@@ -183,9 +194,11 @@ export function extractColors(
   // 3. Extract from Key-Value Lists & Text Lines
   structure.listItems.forEach(item => {
     const isColorSection = item.headingPath.some(h => /color|palette|theme|brand|surface|swatch/i.test(h));
-    
+
     // Pattern: - **Primary**: #6366f1 (Main brand color) or - Primary: #6366F1
-    const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([#0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i);
+    const kvMatch = item.text.match(
+      /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([#0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i
+    );
     if (kvMatch) {
       const name = kvMatch[1].trim();
       const val = kvMatch[2].trim();
@@ -225,7 +238,9 @@ export function extractColors(
 
     if (isColorSection) {
       // Find any isolated HEX or RGB in item
-      const inlineHexMatch = item.text.match(/(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgba?\([^)]+\)|hsla?\([^)]+\))/i);
+      const inlineHexMatch = item.text.match(
+        /(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgba?\([^)]+\)|hsla?\([^)]+\))/i
+      );
       if (inlineHexMatch) {
         const val = inlineHexMatch[1];
         const namePart = deriveInlineName(item.text, val);

@@ -120,15 +120,25 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
             <Eye className="w-3.5 h-3.5 text-accent shrink-0" />
             <select
               value={visionMode}
-              onChange={(e) => setVisionMode(e.target.value as ColorVisionMode)}
+              onChange={e => setVisionMode(e.target.value as ColorVisionMode)}
               aria-label="Color vision simulation mode"
               className="bg-transparent text-content-primary text-xs focus:outline-none cursor-pointer"
             >
-              <option value="normal" className="bg-surface-raised">Normal Vision</option>
-              <option value="protanopia" className="bg-surface-raised">Protanopia (Red-Blind)</option>
-              <option value="deuteranopia" className="bg-surface-raised">Deuteranopia (Green-Blind)</option>
-              <option value="tritanopia" className="bg-surface-raised">Tritanopia (Blue-Blind)</option>
-              <option value="achromatopsia" className="bg-surface-raised">Achromatopsia (Grayscale)</option>
+              <option value="normal" className="bg-surface-raised">
+                Normal Vision
+              </option>
+              <option value="protanopia" className="bg-surface-raised">
+                Protanopia (Red-Blind)
+              </option>
+              <option value="deuteranopia" className="bg-surface-raised">
+                Deuteranopia (Green-Blind)
+              </option>
+              <option value="tritanopia" className="bg-surface-raised">
+                Tritanopia (Blue-Blind)
+              </option>
+              <option value="achromatopsia" className="bg-surface-raised">
+                Achromatopsia (Grayscale)
+              </option>
             </select>
           </div>
 
@@ -136,7 +146,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
           <input
             type="text"
             value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
+            onChange={e => setSearchFilter(e.target.value)}
             placeholder="Filter colors..."
             aria-label="Filter colors"
             className="px-3 py-1.5 rounded-sm bg-surface-raised border border-line text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-accent w-full sm:w-40"
@@ -180,7 +190,10 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
         <div className="p-3 rounded-md bg-accent/10 border border-accent/30 text-accent text-xs flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-accent shrink-0" />
-            <span>Simulating <strong>{visionMode.toUpperCase()}</strong>: Colors transformed to model how vision-impaired users perceive your design system.</span>
+            <span>
+              Simulating <strong>{visionMode.toUpperCase()}</strong>: Colors transformed to model how
+              vision-impaired users perceive your design system.
+            </span>
           </div>
           <button
             type="button"
@@ -223,7 +236,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
       {/* Grid View */}
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredColors.map((color) => {
+          {filteredColors.map(color => {
             // Parsed document value: rendered as data, never tokenised.
             const renderedHex = simulatedHexById.get(color.id) ?? color.hex;
             const contrast = color.contrastWithBg;
@@ -291,7 +304,9 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                   <div>
                     <div className="font-bold text-sm text-content-primary mb-1">{color.name}</div>
-                    <div className="text-xs text-content-secondary line-clamp-1">{color.role || 'Design system color'}</div>
+                    <div className="text-xs text-content-secondary line-clamp-1">
+                      {color.role || 'Design system color'}
+                    </div>
                   </div>
 
                   {/* Values List */}
@@ -312,10 +327,13 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                       <div className="flex items-center gap-1.5">
                         <span className="text-[11px] font-semibold text-content-secondary">Contrast:</span>
                         <Badge
-                          variant={contrast.aaaCompliant ? 'success' : contrast.aaCompliant ? 'brand' : 'warning'}
+                          variant={
+                            contrast.aaaCompliant ? 'success' : contrast.aaCompliant ? 'brand' : 'warning'
+                          }
                           size="sm"
                         >
-                          {contrast.ratio}:1 {contrast.aaaCompliant ? 'AAA' : contrast.aaCompliant ? 'AA' : 'Fail'}
+                          {contrast.ratio}:1{' '}
+                          {contrast.aaaCompliant ? 'AAA' : contrast.aaCompliant ? 'AA' : 'Fail'}
                         </Badge>
                       </div>
                     ) : (
@@ -345,17 +363,31 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
             </caption>
             <thead className="bg-surface-inset border-b border-line-subtle text-content-secondary uppercase font-semibold text-[11px]">
               <tr>
-                <th scope="col" className="p-3">Swatch</th>
-                <th scope="col" className="p-3">Name</th>
-                <th scope="col" className="p-3">Role</th>
-                <th scope="col" className="p-3">HEX</th>
-                <th scope="col" className="p-3">RGB</th>
-                <th scope="col" className="p-3">Contrast</th>
-                <th scope="col" className="p-3 text-right">Actions</th>
+                <th scope="col" className="p-3">
+                  Swatch
+                </th>
+                <th scope="col" className="p-3">
+                  Name
+                </th>
+                <th scope="col" className="p-3">
+                  Role
+                </th>
+                <th scope="col" className="p-3">
+                  HEX
+                </th>
+                <th scope="col" className="p-3">
+                  RGB
+                </th>
+                <th scope="col" className="p-3">
+                  Contrast
+                </th>
+                <th scope="col" className="p-3 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line-subtle">
-              {filteredColors.map((color) => {
+              {filteredColors.map(color => {
                 // Parsed document value: rendered as data, never tokenised.
                 const renderedHex = simulatedHexById.get(color.id) ?? color.hex;
 
@@ -367,14 +399,22 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                         style={{ backgroundColor: renderedHex }}
                       />
                     </td>
-                    <th scope="row" className="p-3 text-left font-semibold text-content-primary">{color.name}</th>
+                    <th scope="row" className="p-3 text-left font-semibold text-content-primary">
+                      {color.name}
+                    </th>
                     <td className="p-3 text-content-secondary">{color.role || color.paletteGroup}</td>
                     <td className="p-3 font-mono tabular-nums text-content-primary">{color.hex}</td>
                     <td className="p-3 font-mono tabular-nums text-content-secondary">{color.rgb}</td>
                     <td className="p-3 tabular-nums">
                       {color.contrastWithBg && (
                         <Badge
-                          variant={color.contrastWithBg.aaaCompliant ? 'success' : color.contrastWithBg.aaCompliant ? 'brand' : 'warning'}
+                          variant={
+                            color.contrastWithBg.aaaCompliant
+                              ? 'success'
+                              : color.contrastWithBg.aaCompliant
+                                ? 'brand'
+                                : 'warning'
+                          }
                           size="sm"
                         >
                           {color.contrastWithBg.ratio}:1
@@ -404,8 +444,13 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
       {viewMode === 'matrix' && (
         <section className="rounded-lg border border-line-subtle bg-surface-raised/60 p-5 space-y-4 shadow-deep">
           <div>
-            <h2 className="font-bold text-sm text-content-primary">Foreground Text vs Background Surfaces Contrast Matrix</h2>
-            <p className="text-xs text-content-secondary">Verifies WCAG 2.1 AA (4.5:1 for body) &amp; AAA (7:1) readability compliance across all color pairings.</p>
+            <h2 className="font-bold text-sm text-content-primary">
+              Foreground Text vs Background Surfaces Contrast Matrix
+            </h2>
+            <p className="text-xs text-content-secondary">
+              Verifies WCAG 2.1 AA (4.5:1 for body) &amp; AAA (7:1) readability compliance across all color
+              pairings.
+            </p>
           </div>
 
           <div className="overflow-x-auto">
@@ -415,13 +460,20 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
               </caption>
               <thead>
                 <tr className="border-b border-line-subtle">
-                  <th scope="col" className="p-3 font-sans font-semibold text-content-secondary">Text / Surface</th>
+                  <th scope="col" className="p-3 font-sans font-semibold text-content-secondary">
+                    Text / Surface
+                  </th>
                   {effectiveSurfaces.map(surface => (
                     <th key={surface.id} scope="col" className="p-3 text-center">
                       <span className="flex flex-col items-center gap-1">
                         {/* Parsed document value: rendered as data, never tokenised. */}
-                        <span className="w-5 h-5 rounded-sm border border-line" style={{ backgroundColor: surface.hex }} />
-                        <span className="font-sans text-[11px] text-content-primary font-semibold truncate max-w-[90px]">{surface.name}</span>
+                        <span
+                          className="w-5 h-5 rounded-sm border border-line"
+                          style={{ backgroundColor: surface.hex }}
+                        />
+                        <span className="font-sans text-[11px] text-content-primary font-semibold truncate max-w-[90px]">
+                          {surface.name}
+                        </span>
                       </span>
                     </th>
                   ))}
@@ -433,7 +485,10 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                     <th scope="row" className="p-3 font-sans text-left">
                       <span className="flex items-center gap-2">
                         {/* Parsed document value: rendered as data, never tokenised. */}
-                        <span className="w-4 h-4 rounded-sm border border-line shrink-0" style={{ backgroundColor: textCol.hex }} />
+                        <span
+                          className="w-4 h-4 rounded-sm border border-line shrink-0"
+                          style={{ backgroundColor: textCol.hex }}
+                        />
                         <span className="font-semibold text-content-primary text-xs">{textCol.name}</span>
                       </span>
                     </th>
@@ -445,8 +500,8 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                             cell.passesAAA
                               ? 'bg-status-success/10 text-status-success border-status-success/30'
                               : cell.passesAA
-                              ? 'bg-accent/10 text-accent border-accent/30'
-                              : 'bg-status-danger/10 text-status-danger border-status-danger/30'
+                                ? 'bg-accent/10 text-accent border-accent/30'
+                                : 'bg-status-danger/10 text-status-danger border-status-danger/30'
                           )}
                         >
                           <span>{cell.ratio}:1</span>

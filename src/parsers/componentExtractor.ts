@@ -2,16 +2,46 @@ import { ComponentSpec, ComponentVariant } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 
 const KNOWN_COMPONENT_NAMES = [
-  'button', 'btn', 'input', 'text field', 'textfield', 'badge', 'tag', 'chip',
-  'card', 'modal', 'dialog', 'checkbox', 'switch', 'toggle', 'alert', 'banner',
-  'toast', 'tabs', 'tab', 'tooltip', 'avatar', 'dropdown', 'select', 'navbar',
-  'navigation', 'header', 'sidebar', 'table', 'accordion', 'pagination', 'spinner',
-  'loader', 'progress', 'radio', 'slider', 'drawer', 'popover'
+  'button',
+  'btn',
+  'input',
+  'text field',
+  'textfield',
+  'badge',
+  'tag',
+  'chip',
+  'card',
+  'modal',
+  'dialog',
+  'checkbox',
+  'switch',
+  'toggle',
+  'alert',
+  'banner',
+  'toast',
+  'tabs',
+  'tab',
+  'tooltip',
+  'avatar',
+  'dropdown',
+  'select',
+  'navbar',
+  'navigation',
+  'header',
+  'sidebar',
+  'table',
+  'accordion',
+  'pagination',
+  'spinner',
+  'loader',
+  'progress',
+  'radio',
+  'slider',
+  'drawer',
+  'popover',
 ];
 
-export function extractComponents(
-  structure: ParsedMarkdownStructure
-): ComponentSpec[] {
+export function extractComponents(structure: ParsedMarkdownStructure): ComponentSpec[] {
   const components: ComponentSpec[] = [];
   const seenNames = new Set<string>();
 
@@ -31,7 +61,8 @@ export function extractComponents(
 
   // 1. Scan sections where heading or parent is in components area or matches known component
   for (const section of structure.sections) {
-    const isUnderComponents = section.heading.toLowerCase().includes('component') ||
+    const isUnderComponents =
+      section.heading.toLowerCase().includes('component') ||
       KNOWN_COMPONENT_NAMES.some(k => section.heading.toLowerCase().includes(k));
 
     if (!isUnderComponents) continue;
@@ -71,7 +102,13 @@ export function extractComponents(
         }
 
         // Detect description from first regular paragraph
-        if (!description && !trimmed.startsWith('#') && !trimmed.startsWith('-') && !trimmed.startsWith('|') && !trimmed.startsWith('`')) {
+        if (
+          !description &&
+          !trimmed.startsWith('#') &&
+          !trimmed.startsWith('-') &&
+          !trimmed.startsWith('|') &&
+          !trimmed.startsWith('`')
+        ) {
           description = trimmed;
           return;
         }
@@ -82,14 +119,27 @@ export function extractComponents(
           const itemText = itemMatch[1].trim();
 
           if (currentSubHeader.includes('variant') || /variant/i.test(itemText)) {
-            const vName = itemText.split(/[:—–-]/)[0].replace(/[*_`]/g, '').trim();
+            const vName = itemText
+              .split(/[:—–-]/)[0]
+              .replace(/[*_`]/g, '')
+              .trim();
             const vDesc = itemText.includes(':') ? itemText.split(':')[1].trim() : undefined;
             variants.push({ name: vName, description: vDesc });
-          } else if (currentSubHeader.includes('state') || /hover|focus|active|disabled|loading/i.test(itemText)) {
+          } else if (
+            currentSubHeader.includes('state') ||
+            /hover|focus|active|disabled|loading/i.test(itemText)
+          ) {
             states.push(itemText.replace(/[*_`]/g, '').trim());
-          } else if (currentSubHeader.includes('size') || /\b(sm|md|lg|xl|small|medium|large)\b/i.test(itemText)) {
+          } else if (
+            currentSubHeader.includes('size') ||
+            /\b(sm|md|lg|xl|small|medium|large)\b/i.test(itemText)
+          ) {
             sizes.push(itemText.replace(/[*_`]/g, '').trim());
-          } else if (currentSubHeader.includes('token') || itemText.includes('--') || itemText.includes('$')) {
+          } else if (
+            currentSubHeader.includes('token') ||
+            itemText.includes('--') ||
+            itemText.includes('$')
+          ) {
             const tokenMatch = itemText.match(/(--[a-zA-Z0-9_-]+|\$[a-zA-Z0-9_-]+)/g);
             if (tokenMatch) tokensUsed.push(...tokenMatch);
           } else if (currentSubHeader.includes('anatomy') || currentSubHeader.includes('structure')) {
@@ -107,7 +157,12 @@ export function extractComponents(
         if (compName.toLowerCase().includes('button')) {
           variants.push({ name: 'Primary' }, { name: 'Secondary' }, { name: 'Outline' }, { name: 'Ghost' });
         } else if (compName.toLowerCase().includes('badge')) {
-          variants.push({ name: 'Default' }, { name: 'Success' }, { name: 'Warning' }, { name: 'Destructive' });
+          variants.push(
+            { name: 'Default' },
+            { name: 'Success' },
+            { name: 'Warning' },
+            { name: 'Destructive' }
+          );
         }
       }
 
@@ -117,12 +172,19 @@ export function extractComponents(
       }
 
       // Default sizes if standard
-      if (sizes.length === 0 && (compName.toLowerCase().includes('button') || compName.toLowerCase().includes('input') || compName.toLowerCase().includes('badge'))) {
+      if (
+        sizes.length === 0 &&
+        (compName.toLowerCase().includes('button') ||
+          compName.toLowerCase().includes('input') ||
+          compName.toLowerCase().includes('badge'))
+      ) {
         sizes.push('Small (sm)', 'Medium (md)', 'Large (lg)');
       }
 
       // Find code example in code blocks inside this section's line range
-      const blockInSec = structure.codeBlocks.find(b => b.startLine >= section.lineNumber && b.endLine <= section.lineEnd);
+      const blockInSec = structure.codeBlocks.find(
+        b => b.startLine >= section.lineNumber && b.endLine <= section.lineEnd
+      );
 
       components.push({
         id: `cmp-${components.length + 1}-${compName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,

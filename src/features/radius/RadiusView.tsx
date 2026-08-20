@@ -26,7 +26,7 @@ export const RadiusView: React.FC<RadiusViewProps> = ({ radii, onNavigateToSourc
 
       {/* Grid of real shapes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {radii.map((token) => {
+        {radii.map(token => {
           const cssVar = `--radius-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${token.value};`;
           const radiusCss = token.value === 'full' || token.pxValue >= 9999 ? '9999px' : `${token.pxValue}px`;
 

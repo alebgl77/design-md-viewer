@@ -9,11 +9,11 @@ export default defineConfig({
   base: './',
   server: {
     port: 5173,
-    host: true
+    host: true,
   },
   build: {
     target: 'es2020',
     sourcemap: false,
-    chunkSizeWarningLimit: 600
-  }
+    chunkSizeWarningLimit: 600,
+  },
 });

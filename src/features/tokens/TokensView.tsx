@@ -15,10 +15,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = useMemo(
-    () => ['All', ...Array.from(new Set(tokens.map(t => t.category)))],
-    [tokens]
-  );
+  const categories = useMemo(() => ['All', ...Array.from(new Set(tokens.map(t => t.category)))], [tokens]);
 
   const filteredTokens = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -43,7 +40,8 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
             Design Tokens &amp; Variable Aliases
           </h1>
           <p className="text-xs text-content-muted mt-0.5">
-            <span className="tabular-nums">{tokens.length}</span> raw CSS variables and resolved alias relationships.
+            <span className="tabular-nums">{tokens.length}</span> raw CSS variables and resolved alias
+            relationships.
           </p>
         </div>
 
@@ -51,7 +49,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search tokens..."
             aria-label="Search tokens"
             className="px-3 py-1.5 rounded-sm bg-surface-raised border border-line text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-accent w-full sm:w-48"
@@ -61,7 +59,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
 
       {/* Category Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-        {categories.map((cat) => {
+        {categories.map(cat => {
           const isActive = filterCategory === cat;
           return (
             <button
@@ -93,15 +91,25 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
             </caption>
             <thead className="bg-surface-inset border-b border-line text-content-secondary uppercase font-semibold text-[11px]">
               <tr>
-                <th scope="col" className="p-3.5">CSS Variable</th>
-                <th scope="col" className="p-3.5">Category</th>
-                <th scope="col" className="p-3.5">Raw Value</th>
-                <th scope="col" className="p-3.5">Resolved Alias</th>
-                <th scope="col" className="p-3.5 text-right">Actions</th>
+                <th scope="col" className="p-3.5">
+                  CSS Variable
+                </th>
+                <th scope="col" className="p-3.5">
+                  Category
+                </th>
+                <th scope="col" className="p-3.5">
+                  Raw Value
+                </th>
+                <th scope="col" className="p-3.5">
+                  Resolved Alias
+                </th>
+                <th scope="col" className="p-3.5 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line-subtle font-mono">
-              {filteredTokens.map((token) => (
+              {filteredTokens.map(token => (
                 <tr key={token.id} className="hover:bg-surface-overlay transition-colors">
                   <th scope="row" className="p-3.5 font-normal text-left">
                     <div className="flex items-center gap-2">

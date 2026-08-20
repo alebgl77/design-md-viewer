@@ -140,7 +140,10 @@ export function parseMarkdownStructure(rawMarkdown: string): ParsedMarkdownStruc
       }
 
       // Update heading stack based on level
-      while (currentHeadingStack.length > 0 && currentHeadingStack[currentHeadingStack.length - 1].level >= level) {
+      while (
+        currentHeadingStack.length > 0 &&
+        currentHeadingStack[currentHeadingStack.length - 1].level >= level
+      ) {
         currentHeadingStack.pop();
       }
       currentHeadingStack.push({ level, text: headingText });

@@ -67,7 +67,11 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   };
 
   const statusMessage =
-    state === 'copied' ? 'Copied to clipboard' : state === 'failed' ? 'Copy failed. Copy the value manually.' : '';
+    state === 'copied'
+      ? 'Copied to clipboard'
+      : state === 'failed'
+        ? 'Copy failed. Copy the value manually.'
+        : '';
 
   return (
     // The live region is a sibling of the button, not a child: a status node

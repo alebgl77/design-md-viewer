@@ -17,23 +17,19 @@ function isNonSpacingSection(headingPath: string[]): boolean {
   return headingPath.some(h => NON_SPACING_SECTION.test(h));
 }
 
-export function extractSpacing(
-  structure: ParsedMarkdownStructure
-): SpacingToken[] {
+export function extractSpacing(structure: ParsedMarkdownStructure): SpacingToken[] {
   const spacing: SpacingToken[] = [];
   const seenValues = new Set<string>();
 
-  function addSpacing(
-    name: string,
-    value: string,
-    provenance: Provenance,
-    role?: string
-  ) {
+  function addSpacing(name: string, value: string, provenance: Provenance, role?: string) {
     const cleanValue = value.replace(/[`*]/g, '').trim();
     if (!SPACING_VALUE.test(cleanValue)) return;
 
     const px = parsePxValue(cleanValue);
-    const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
+    const cleanName = name
+      .replace(/^(--|\$)/, '')
+      .replace(/[-_]/g, ' ')
+      .trim();
     const dedupeKey = `${cleanName.toLowerCase()}-${px}`;
     if (seenValues.has(dedupeKey)) return;
     seenValues.add(dedupeKey);
@@ -59,7 +55,9 @@ export function extractSpacing(
     const lines = block.code.split('\n');
     lines.forEach((line, idx) => {
       const lineNum = block.startLine + idx + 1;
-      const spaceVarMatch = line.match(/^\s*(--(?:spacing|space|gap|padding|pad|margin)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
+      const spaceVarMatch = line.match(
+        /^\s*(--(?:spacing|space|gap|padding|pad|margin)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i
+      );
       if (spaceVarMatch) {
         addSpacing(
           spaceVarMatch[1].replace(/^--(?:spacing-|space-|gap-|padding-|pad-|margin-)/, ''),
@@ -91,7 +89,7 @@ export function extractSpacing(
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
         const nameVal = nameIdx !== -1 ? row[nameIdx] : row[0];
-        const valVal = valIdx !== -1 ? row[valIdx] : (row.find(c => /[\d.]+(?:px|rem|em)/i.test(c)) || row[1]);
+        const valVal = valIdx !== -1 ? row[valIdx] : row.find(c => /[\d.]+(?:px|rem|em)/i.test(c)) || row[1];
         const roleVal = roleIdx !== -1 ? row[roleIdx] : undefined;
 
         if (nameVal && valVal) {
@@ -117,7 +115,9 @@ export function extractSpacing(
 
     const isSpacingSection = item.headingPath.some(h => SPACING_SECTION.test(h));
     if (isSpacingSection) {
-      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+(?:px|rem|em))[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i);
+      const kvMatch = item.text.match(
+        /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+(?:px|rem|em))[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i
+      );
       if (kvMatch) {
         addSpacing(
           kvMatch[1].trim(),

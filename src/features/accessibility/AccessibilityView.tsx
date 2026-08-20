@@ -15,11 +15,16 @@ export const AccessibilityView: React.FC<AccessibilityViewProps> = ({
 }) => {
   const getCategoryIcon = (cat: A11yRule['category']) => {
     switch (cat) {
-      case 'contrast': return Eye;
-      case 'keyboard': return Keyboard;
-      case 'target-size': return Touchpad;
-      case 'motion': return Zap;
-      default: return ShieldCheck;
+      case 'contrast':
+        return Eye;
+      case 'keyboard':
+        return Keyboard;
+      case 'target-size':
+        return Touchpad;
+      case 'motion':
+        return Zap;
+      default:
+        return ShieldCheck;
     }
   };
 
@@ -31,13 +36,13 @@ export const AccessibilityView: React.FC<AccessibilityViewProps> = ({
           Accessibility &amp; Compliance Guidelines
         </h1>
         <p className="text-xs text-content-muted mt-0.5">
-          <span className="tabular-nums">{accessibility.length}</span> accessibility standards and WCAG guidelines
-          extracted from specification.
+          <span className="tabular-nums">{accessibility.length}</span> accessibility standards and WCAG
+          guidelines extracted from specification.
         </p>
       </div>
 
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {accessibility.map((rule) => {
+        {accessibility.map(rule => {
           const Icon = getCategoryIcon(rule.category);
 
           return (

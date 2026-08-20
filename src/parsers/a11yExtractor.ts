@@ -1,9 +1,7 @@
 import { A11yRule, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 
-export function extractAccessibility(
-  structure: ParsedMarkdownStructure
-): A11yRule[] {
+export function extractAccessibility(structure: ParsedMarkdownStructure): A11yRule[] {
   const rules: A11yRule[] = [];
   const seenTitles = new Set<string>();
 

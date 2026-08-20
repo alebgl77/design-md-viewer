@@ -91,7 +91,9 @@ describe('Design System Health Auditor & Modern Enhancements', () => {
     expect(report.metrics.gridCompliancePercent).toBe(100);
     expect(report.metrics.errorCount).toBe(0);
     expect(report.grade).toBe('B');
-    expect(report.issues.every(i => i.category === 'accessibility' || i.category === 'consistency')).toBe(true);
+    expect(report.issues.every(i => i.category === 'accessibility' || i.category === 'consistency')).toBe(
+      true
+    );
     expect(report.issues.every(i => i.impactScore > 0)).toBe(true);
     // Every deduction is itemized: the score is the sum of what is shown.
     const deductions = report.issues.reduce((acc, i) => acc + i.impactScore, 0);

@@ -13,10 +13,7 @@ import { extractAccessibility } from './a11yExtractor';
 import { resolveTokensAndReferences } from './referenceResolver';
 import { extractOverview } from './overviewExtractor';
 
-export function parseDesignDocument(
-  rawMarkdown: string,
-  fileName = 'design.md'
-): DesignSystem {
+export function parseDesignDocument(rawMarkdown: string, fileName = 'design.md'): DesignSystem {
   const structure = parseMarkdownStructure(rawMarkdown);
 
   // 1. Extract tokens & primitives
@@ -53,7 +50,7 @@ export function parseDesignDocument(
   if (motion.length > 0) categoriesDetected.push('Motion');
   if (accessibility.length > 0) categoriesDetected.push('Accessibility');
   if (tokens.length > 0) categoriesDetected.push('Tokens');
-  
+
   // Health & Linter Audit is available when we have parsed tokens
   if (colors.length > 0 || typography.length > 0 || spacing.length > 0) {
     categoriesDetected.push('Audit');

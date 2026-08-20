@@ -11,10 +11,7 @@ interface ComponentsViewProps {
   onNavigateToSource?: (lineNumber?: number) => void;
 }
 
-export const ComponentsView: React.FC<ComponentsViewProps> = ({
-  components,
-  onNavigateToSource,
-}) => {
+export const ComponentsView: React.FC<ComponentsViewProps> = ({ components, onNavigateToSource }) => {
   const [selectedCompId, setSelectedCompId] = useState<string>(components[0]?.id || '');
   const [selectedVariant, setSelectedVariant] = useState<string>('Primary');
   const [selectedState, setSelectedState] = useState<string>('Default');
@@ -149,8 +146,8 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
           Component Specifications &amp; Code Generators
         </h1>
         <p className="text-xs text-content-muted mt-0.5">
-          <span className="tabular-nums">{components.length}</span> UI components parsed with live preview controls
-          and multi-framework code export.
+          <span className="tabular-nums">{components.length}</span> UI components parsed with live preview
+          controls and multi-framework code export.
         </p>
       </div>
 
@@ -161,7 +158,7 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
           <h2 className="text-[11px] font-bold uppercase tracking-wider text-content-muted px-3 py-2">
             Available Components
           </h2>
-          {components.map((comp) => {
+          {components.map(comp => {
             const isSelected = comp.id === (activeComp?.id || '');
             return (
               <button
@@ -264,11 +261,13 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                         <select
                           id="preview-variant"
                           value={selectedVariant}
-                          onChange={(e) => setSelectedVariant(e.target.value)}
+                          onChange={e => setSelectedVariant(e.target.value)}
                           className="bg-surface-raised border border-line text-content-primary rounded-sm px-2 py-1 focus:outline-none focus:border-accent text-xs font-semibold"
                         >
-                          {activeComp.variants.map((v) => (
-                            <option key={v.name} value={v.name}>{v.name}</option>
+                          {activeComp.variants.map(v => (
+                            <option key={v.name} value={v.name}>
+                              {v.name}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -282,11 +281,13 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                         <select
                           id="preview-state"
                           value={selectedState}
-                          onChange={(e) => setSelectedState(e.target.value)}
+                          onChange={e => setSelectedState(e.target.value)}
                           className="bg-surface-raised border border-line text-content-primary rounded-sm px-2 py-1 focus:outline-none focus:border-accent text-xs font-semibold"
                         >
-                          {activeComp.states.map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                          {activeComp.states.map(s => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -300,11 +301,13 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                         <select
                           id="preview-size"
                           value={selectedSize}
-                          onChange={(e) => setSelectedSize(e.target.value)}
+                          onChange={e => setSelectedSize(e.target.value)}
                           className="bg-surface-raised border border-line text-content-primary rounded-sm px-2 py-1 focus:outline-none focus:border-accent text-xs font-semibold"
                         >
-                          {activeComp.sizes.map((sz) => (
-                            <option key={sz} value={sz}>{sz}</option>
+                          {activeComp.sizes.map(sz => (
+                            <option key={sz} value={sz}>
+                              {sz}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -319,7 +322,12 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                       </span>
                     </div>
 
-                    {renderLiveComponent(activeComp.previewType, selectedVariant, selectedState, selectedSize)}
+                    {renderLiveComponent(
+                      activeComp.previewType,
+                      selectedVariant,
+                      selectedState,
+                      selectedSize
+                    )}
                   </div>
                 </>
               ) : (
@@ -330,13 +338,19 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                       {activeTab === 'react' ? `${activeComp.name}.tsx` : `${activeComp.name}.html`}
                     </span>
                     <CopyButton
-                      text={activeTab === 'react' ? generateReactCode(activeComp, selectedVariant, selectedSize) : generateHtmlCode(activeComp, selectedVariant)}
+                      text={
+                        activeTab === 'react'
+                          ? generateReactCode(activeComp, selectedVariant, selectedSize)
+                          : generateHtmlCode(activeComp, selectedVariant)
+                      }
                       label="Copy Component"
                       variant="secondary"
                     />
                   </div>
                   <pre className="p-4 rounded-md bg-surface-inset border border-line text-xs font-mono text-content-secondary overflow-x-auto max-h-[300px] leading-relaxed">
-                    {activeTab === 'react' ? generateReactCode(activeComp, selectedVariant, selectedSize) : generateHtmlCode(activeComp, selectedVariant)}
+                    {activeTab === 'react'
+                      ? generateReactCode(activeComp, selectedVariant, selectedSize)
+                      : generateHtmlCode(activeComp, selectedVariant)}
                   </pre>
                 </div>
               )}
@@ -348,13 +362,20 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                 <section className="p-5 rounded-lg bg-surface-raised border border-line space-y-3">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-content-secondary flex items-center gap-2">
                     <Layers className="w-3.5 h-3.5 text-accent" aria-hidden="true" />
-                    <span>Variants (<span className="tabular-nums">{activeComp.variants.length}</span>)</span>
+                    <span>
+                      Variants (<span className="tabular-nums">{activeComp.variants.length}</span>)
+                    </span>
                   </h3>
                   <div className="space-y-2">
                     {activeComp.variants.map((v, i) => (
-                      <div key={i} className="p-2.5 rounded-md bg-surface-inset border border-line-subtle text-xs">
+                      <div
+                        key={i}
+                        className="p-2.5 rounded-md bg-surface-inset border border-line-subtle text-xs"
+                      >
                         <div className="font-semibold text-content-primary">{v.name}</div>
-                        {v.description && <div className="text-content-muted text-[11px] mt-0.5">{v.description}</div>}
+                        {v.description && (
+                          <div className="text-content-muted text-[11px] mt-0.5">{v.description}</div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -405,7 +426,10 @@ export const ${comp.name.replace(/[^a-zA-Z0-9]/g, '')} = ({ children }: { childr
                   <ul className="space-y-1.5 text-xs text-content-secondary">
                     {activeComp.a11yNotes.map((note, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" aria-hidden="true" />
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"
+                          aria-hidden="true"
+                        />
                         <span>{note}</span>
                       </li>
                     ))}
@@ -438,8 +462,8 @@ function renderLiveComponent(
   const sizeClasses = isSmall
     ? 'px-3 py-1.5 text-xs h-8'
     : isLarge
-    ? 'px-6 py-3 text-base h-12'
-    : 'px-4 py-2 text-sm h-10';
+      ? 'px-6 py-3 text-base h-12'
+      : 'px-4 py-2 text-sm h-10';
 
   if (type === 'button' || !type || type === 'custom') {
     // The spec carries no colour of its own, so the preview is painted in the app's own
@@ -498,13 +522,15 @@ function renderLiveComponent(
             hasError
               ? 'border-status-danger focus:ring-2 focus:ring-status-danger/40'
               : isFocus
-              ? 'border-accent ring-2 ring-accent/40'
-              : 'border-line focus:border-accent',
+                ? 'border-accent ring-2 ring-accent/40'
+                : 'border-line focus:border-accent',
             isDisabled && 'opacity-50 cursor-not-allowed'
           )}
         />
         {hasError && (
-          <span className="text-[11px] text-status-danger font-medium">Please provide a valid email format.</span>
+          <span className="text-[11px] text-status-danger font-medium">
+            Please provide a valid email format.
+          </span>
         )}
       </div>
     );
@@ -514,8 +540,10 @@ function renderLiveComponent(
     let badgeVariant: any = 'brand';
     if (variant.toLowerCase().includes('success')) badgeVariant = 'success';
     else if (variant.toLowerCase().includes('warn')) badgeVariant = 'warning';
-    else if (variant.toLowerCase().includes('danger') || variant.toLowerCase().includes('destruct')) badgeVariant = 'error';
-    else if (variant.toLowerCase().includes('neutral') || variant.toLowerCase().includes('default')) badgeVariant = 'neutral';
+    else if (variant.toLowerCase().includes('danger') || variant.toLowerCase().includes('destruct'))
+      badgeVariant = 'error';
+    else if (variant.toLowerCase().includes('neutral') || variant.toLowerCase().includes('default'))
+      badgeVariant = 'neutral';
 
     return (
       <Badge variant={badgeVariant} size={isLarge ? 'md' : 'sm'}>

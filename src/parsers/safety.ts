@@ -10,10 +10,7 @@ const JAVASCRIPT_URI_PATTERN = /javascript:/gi;
 
 export function sanitizeText(text: string): string {
   if (!text) return '';
-  return text
-    .replace(SCRIPT_BLOCK_PATTERN, '')
-    .replace(JAVASCRIPT_URI_PATTERN, '')
-    .trim();
+  return text.replace(SCRIPT_BLOCK_PATTERN, '').replace(JAVASCRIPT_URI_PATTERN, '').trim();
 }
 
 /**

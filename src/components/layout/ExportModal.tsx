@@ -22,13 +22,10 @@ interface ExportModalProps {
   system: DesignSystem;
 }
 
-type ExportTab = 'json' | 'tailwind-v4' | 'tailwind-v3' | 'css' | 'typescript' | 'scss' | 'ai-rules' | 'markdown';
+type ExportTab =
+  'json' | 'tailwind-v4' | 'tailwind-v3' | 'css' | 'typescript' | 'scss' | 'ai-rules' | 'markdown';
 
-export const ExportModal: React.FC<ExportModalProps> = ({
-  isOpen,
-  onClose,
-  system,
-}) => {
+export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, system }) => {
   const [activeTab, setActiveTab] = useState<ExportTab>('json');
   const [copied, setCopied] = useState(false);
 
@@ -117,13 +114,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   ];
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      labelledBy={TITLE_ID}
-      size="lg"
-      className="max-h-[90vh]"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} labelledBy={TITLE_ID} size="lg" className="max-h-[90vh]">
       {/* Header */}
       <div className="flex items-center justify-between p-5 border-b border-line">
         <div className="flex items-center gap-2.5">
@@ -131,8 +122,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <Download className="w-4 h-4" />
           </div>
           <div>
-            <h2 id={TITLE_ID} className="text-base font-bold text-content-primary">Export Design System &amp; Tokens</h2>
-            <p className="text-xs text-content-secondary">Production-ready exports for web frameworks, iOS, Android, Figma, and AI agents</p>
+            <h2 id={TITLE_ID} className="text-base font-bold text-content-primary">
+              Export Design System &amp; Tokens
+            </h2>
+            <p className="text-xs text-content-secondary">
+              Production-ready exports for web frameworks, iOS, Android, Figma, and AI agents
+            </p>
           </div>
         </div>
         <button
@@ -146,7 +141,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
       {/* Tab Navigation */}
       <div className="flex items-center gap-1 px-5 pt-3 border-b border-line bg-surface-inset overflow-x-auto">
-        {tabs.map((tab) => {
+        {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
@@ -156,7 +151,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               onClick={() => setActiveTab(tab.id)}
               aria-pressed={isActive}
               className={`flex items-center gap-1.5 pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors shrink-0 ${
-                isActive ? 'border-accent text-accent' : 'border-transparent text-content-secondary hover:text-content-primary'
+                isActive
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-content-secondary hover:text-content-primary'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -195,7 +192,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-surface-raised hover:bg-accent/10 border border-line hover:border-accent/40 text-xs font-semibold text-content-primary transition-colors"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-status-success" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-status-success" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
             <span>{copied ? 'Copied!' : 'Copy Code'}</span>
           </button>
 

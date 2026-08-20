@@ -85,7 +85,7 @@ export const ShadowsView: React.FC<ShadowsViewProps> = ({ shadows, onNavigateToS
 
       {/* Grid of Elevation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {shadows.map((token) => {
+        {shadows.map(token => {
           const cssVar = `--shadow-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${token.value};`;
 
           return (

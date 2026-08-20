@@ -132,11 +132,20 @@ body {
   min-height: 100dvh;
   background-color: rgb(var(--surface-base));
   color: rgb(var(--content-primary));
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   overflow-x: hidden;
 }
 
-h1, h2, h3, .font-heading {
+h1,
+h2,
+h3,
+.font-heading {
   font-family: 'Bricolage Grotesque', sans-serif;
   letter-spacing: -0.03em;
 }
@@ -163,7 +172,18 @@ h1, h2, h3, .font-heading {
    `focus:ring-*` is a box-shadow, so intentional component rings still compose
    with this outline instead of being overridden by it. */
 
-:root :is(a, button, input, select, textarea, summary, [tabindex], [role='button'], [contenteditable]):focus-visible {
+:root
+  :is(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role='button'],
+    [contenteditable]
+  ):focus-visible {
   outline: 2px solid rgb(var(--accent));
   outline-offset: 2px;
 }

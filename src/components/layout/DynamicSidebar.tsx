@@ -85,13 +85,11 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
           <span className="text-[11px] font-bold uppercase tracking-wider text-content-secondary font-heading">
             Detected Specifications
           </span>
-          <span className="text-[11px] font-mono text-content-muted">
-            {categories.length - 2} categories
-          </span>
+          <span className="text-[11px] font-mono text-content-muted">{categories.length - 2} categories</span>
         </div>
 
         <nav aria-label="Design system categories" className="flex-1 overflow-y-auto p-3 space-y-1">
-          {categories.map((category) => {
+          {categories.map(category => {
             const Icon = CATEGORY_ICONS[category] || Tag;
             const count = counts[category];
             const isActive = activeCategory === category;
@@ -123,18 +121,22 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  {typeof count === 'number' && count > 0 && category !== 'Overview' && category !== 'Source' && category !== 'Audit' && (
-                    <span
-                      className={clsx(
-                        'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold',
-                        isActive
-                          ? 'bg-accent text-accent-contrast'
-                          : 'bg-surface-inset text-content-secondary'
-                      )}
-                    >
-                      {count}
-                    </span>
-                  )}
+                  {typeof count === 'number' &&
+                    count > 0 &&
+                    category !== 'Overview' &&
+                    category !== 'Source' &&
+                    category !== 'Audit' && (
+                      <span
+                        className={clsx(
+                          'px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold',
+                          isActive
+                            ? 'bg-accent text-accent-contrast'
+                            : 'bg-surface-inset text-content-secondary'
+                        )}
+                      >
+                        {count}
+                      </span>
+                    )}
                   {category === 'Audit' && (
                     <span className="px-2 py-0.5 rounded-sm border border-line-subtle bg-surface-inset text-[10px] font-semibold text-content-secondary">
                       Lint
@@ -155,8 +157,8 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
         */}
         <div className="p-4 border-t border-line-subtle">
           <p className="text-[11px] leading-relaxed text-content-muted font-sans">
-            <span className="font-semibold text-content-secondary">Local engine.</span> This document
-            is parsed in your browser and never uploaded.
+            <span className="font-semibold text-content-secondary">Local engine.</span> This document is
+            parsed in your browser and never uploaded.
           </p>
         </div>
       </aside>

@@ -169,8 +169,8 @@ export const ProvenancePopover: React.FC<ProvenancePopoverProps> = ({
       tabIndex={-1}
       // React portals still bubble through the React tree, so a row-level
       // onClick would fire on every click inside the panel without this.
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={(e) => {
+      onClick={e => e.stopPropagation()}
+      onKeyDown={e => {
         // Same reason: an ancestor React keydown handler would otherwise see
         // this Escape and close whatever it owns as well. The native document
         // listener above still fires and closes this panel.
@@ -254,7 +254,7 @@ export const ProvenancePopover: React.FC<ProvenancePopoverProps> = ({
       <button
         ref={triggerRef}
         type="button"
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           if (isOpen) {
             close();

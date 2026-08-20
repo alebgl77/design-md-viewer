@@ -25,13 +25,13 @@ export const MotionView: React.FC<MotionViewProps> = ({ motion, onNavigateToSour
           Motion &amp; Transitions
         </h1>
         <p className="text-xs text-content-muted mt-0.5">
-          <span className="tabular-nums">{motion.length}</span> animation and transition tokens with interactive
-          physics triggers.
+          <span className="tabular-nums">{motion.length}</span> animation and transition tokens with
+          interactive physics triggers.
         </p>
       </div>
 
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {motion.map((token) => {
+        {motion.map(token => {
           const isTriggered = activeAnim === token.id;
           const durationStr = token.duration || (token.durationMs ? `${token.durationMs}ms` : '200ms');
           const easingStr = token.easing || 'ease-in-out';
@@ -71,7 +71,9 @@ export const MotionView: React.FC<MotionViewProps> = ({ motion, onNavigateToSour
                   <div
                     className="w-10 h-10 rounded-md bg-accent text-accent-contrast flex items-center justify-center shadow-deep"
                     style={{
-                      transform: isTriggered ? 'translateX(calc(100% + 120px)) scale(1.1)' : 'translateX(0px) scale(1)',
+                      transform: isTriggered
+                        ? 'translateX(calc(100% + 120px)) scale(1.1)'
+                        : 'translateX(0px) scale(1)',
                       transitionProperty: 'all',
                       transitionDuration: durationStr,
                       transitionTimingFunction: easingStr,

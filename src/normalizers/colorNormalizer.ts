@@ -50,11 +50,21 @@ export function normalizeColorValue(input: string): NormalizedColor {
   if (hexMatch) {
     let rawHex = hexMatch[1];
     if (rawHex.length === 3) {
-      rawHex = rawHex.split('').map(c => c + c).join('');
+      rawHex = rawHex
+        .split('')
+        .map(c => c + c)
+        .join('');
     } else if (rawHex.length === 4) {
-      rawHex = rawHex.slice(0, 3).split('').map(c => c + c).join('') + rawHex[3] + rawHex[3];
+      rawHex =
+        rawHex
+          .slice(0, 3)
+          .split('')
+          .map(c => c + c)
+          .join('') +
+        rawHex[3] +
+        rawHex[3];
     }
-    
+
     // standard 6 chars
     const baseHex = '#' + rawHex.slice(0, 6);
     const rgb = hexToRgb(baseHex);
@@ -192,12 +202,15 @@ export function getContrastRatio(hex1: string, hex2: string): number {
   return Math.round(ratio * 100) / 100;
 }
 
-export function classifyColorRole(name: string, role?: string): {
+export function classifyColorRole(
+  name: string,
+  role?: string
+): {
   paletteGroup: 'brand' | 'neutral' | 'semantic' | 'accent' | 'surface' | 'other';
   detectedRole: string;
 } {
   const lower = (name + ' ' + (role || '')).toLowerCase();
-  
+
   if (lower.includes('primary') || lower.includes('brand') || lower.includes('main')) {
     return { paletteGroup: 'brand', detectedRole: 'Primary Brand' };
   }
@@ -219,13 +232,30 @@ export function classifyColorRole(name: string, role?: string): {
   if (lower.includes('border') || lower.includes('divider') || lower.includes('stroke')) {
     return { paletteGroup: 'neutral', detectedRole: 'Border' };
   }
-  if (lower.includes('gray') || lower.includes('neutral') || lower.includes('slate') || lower.includes('zinc') || lower.includes('muted')) {
+  if (
+    lower.includes('gray') ||
+    lower.includes('neutral') ||
+    lower.includes('slate') ||
+    lower.includes('zinc') ||
+    lower.includes('muted')
+  ) {
     return { paletteGroup: 'neutral', detectedRole: 'Neutral' };
   }
-  if (lower.includes('success') || lower.includes('green') || lower.includes('valid') || lower.includes('passed')) {
+  if (
+    lower.includes('success') ||
+    lower.includes('green') ||
+    lower.includes('valid') ||
+    lower.includes('passed')
+  ) {
     return { paletteGroup: 'semantic', detectedRole: 'Success' };
   }
-  if (lower.includes('error') || lower.includes('danger') || lower.includes('destructive') || lower.includes('red') || lower.includes('alert')) {
+  if (
+    lower.includes('error') ||
+    lower.includes('danger') ||
+    lower.includes('destructive') ||
+    lower.includes('red') ||
+    lower.includes('alert')
+  ) {
     return { paletteGroup: 'semantic', detectedRole: 'Destructive' };
   }
   if (lower.includes('warn') || lower.includes('yellow') || lower.includes('amber')) {

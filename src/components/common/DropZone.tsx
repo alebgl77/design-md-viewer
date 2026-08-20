@@ -1,5 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileCode2, Sparkles, Layers, ArrowRight, AlertCircle, PlusCircle, Download, Check, X } from 'lucide-react';
+import {
+  UploadCloud,
+  FileCode2,
+  Sparkles,
+  Layers,
+  ArrowRight,
+  AlertCircle,
+  PlusCircle,
+  Download,
+  Check,
+  X,
+} from 'lucide-react';
 import { clsx } from 'clsx';
 import {
   SAMPLE_IAB2B_DESIGN_SYSTEM,
@@ -36,7 +47,9 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
   const [isDragging, setIsDragging] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isScaffoldModalOpen, setIsScaffoldModalOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<'iab2b' | 'mobile' | 'minimal' | 'cyberpunk'>('iab2b');
+  const [selectedTemplate, setSelectedTemplate] = useState<'iab2b' | 'mobile' | 'minimal' | 'cyberpunk'>(
+    'iab2b'
+  );
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +57,11 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
   const handleFileProcess = (file: File) => {
     setLocalError(null);
-    if (!file.name.toLowerCase().endsWith('.md') && !file.name.toLowerCase().endsWith('.markdown') && !file.name.toLowerCase().endsWith('.txt')) {
+    if (
+      !file.name.toLowerCase().endsWith('.md') &&
+      !file.name.toLowerCase().endsWith('.markdown') &&
+      !file.name.toLowerCase().endsWith('.txt')
+    ) {
       setLocalError(`Invalid file format "${file.name}". Please drop a Markdown file (.md).`);
       return;
     }
@@ -57,7 +74,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const content = e.target?.result as string;
       if (!content || content.trim().length === 0) {
         setLocalError(`The file "${file.name}" is completely empty. Please load a valid design.md file.`);
@@ -108,10 +125,14 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
   const getTemplateContent = () => {
     switch (selectedTemplate) {
-      case 'iab2b': return SAMPLE_IAB2B_DESIGN_SYSTEM;
-      case 'mobile': return SAMPLE_NARRATIVE_GUIDELINES;
-      case 'minimal': return SAMPLE_MINIMAL_COLORS;
-      case 'cyberpunk': return SAMPLE_CYBERPUNK_TOKENS;
+      case 'iab2b':
+        return SAMPLE_IAB2B_DESIGN_SYSTEM;
+      case 'mobile':
+        return SAMPLE_NARRATIVE_GUIDELINES;
+      case 'minimal':
+        return SAMPLE_MINIMAL_COLORS;
+      case 'cyberpunk':
+        return SAMPLE_CYBERPUNK_TOKENS;
     }
   };
 
@@ -134,7 +155,11 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
           Design.md <span className="text-accent">Visual Explorer</span>
         </h1>
         <p className="text-content-secondary text-base sm:text-lg leading-relaxed font-normal">
-          Transform your raw <code className="text-accent bg-surface-overlay border border-line px-2 py-0.5 rounded-sm font-mono text-sm">design.md</code> into an interactive, structured, and immediately exploitable design system.
+          Transform your raw{' '}
+          <code className="text-accent bg-surface-overlay border border-line px-2 py-0.5 rounded-sm font-mono text-sm">
+            design.md
+          </code>{' '}
+          into an interactive, structured, and immediately exploitable design system.
         </p>
       </div>
 
@@ -164,10 +189,14 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
         />
 
         <div className="flex flex-col items-center justify-center pointer-events-none">
-          <div className={clsx(
-            'w-16 h-16 rounded-lg flex items-center justify-center mb-5 transition-transform duration-200',
-            isDragging ? 'scale-110 bg-accent text-accent-contrast' : 'bg-surface-overlay text-accent border border-line'
-          )}>
+          <div
+            className={clsx(
+              'w-16 h-16 rounded-lg flex items-center justify-center mb-5 transition-transform duration-200',
+              isDragging
+                ? 'scale-110 bg-accent text-accent-contrast'
+                : 'bg-surface-overlay text-accent border border-line'
+            )}
+          >
             <UploadCloud className="w-8 h-8" />
           </div>
 
@@ -175,7 +204,10 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
             {isDragging ? 'Drop your design.md right here' : 'Drop your design.md file here'}
           </h2>
           <p className="text-sm text-content-secondary max-w-md mb-6">
-            Drag & drop your Markdown specification, or <span className="text-accent font-semibold underline underline-offset-4">browse your computer</span>
+            Drag & drop your Markdown specification, or{' '}
+            <span className="text-accent font-semibold underline underline-offset-4">
+              browse your computer
+            </span>
           </p>
 
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-sm bg-surface-inset border border-line text-xs font-mono text-content-secondary">
@@ -202,8 +234,12 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
       {/* Scaffold Bar */}
       <div className="w-full mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-lg bg-surface-raised border border-line shadow-deep">
         <div>
-          <div className="font-bold text-sm text-content-primary font-heading">Don't have a design.md file yet?</div>
-          <div className="text-xs text-content-secondary">Generate an industry-standard template with Bricolage Grotesque, dark canvas, and tokens.</div>
+          <div className="font-bold text-sm text-content-primary font-heading">
+            Don't have a design.md file yet?
+          </div>
+          <div className="text-xs text-content-secondary">
+            Generate an industry-standard template with Bricolage Grotesque, dark canvas, and tokens.
+          </div>
         </div>
         <button
           type="button"
@@ -308,8 +344,12 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
               <PlusCircle className="w-4 h-4" />
             </div>
             <div>
-              <h3 id={SCAFFOLD_TITLE_ID} className="font-bold text-content-primary text-base font-heading">Scaffold New DESIGN.md</h3>
-              <p className="text-xs text-content-secondary">Generate a structured design specification template for your codebase</p>
+              <h3 id={SCAFFOLD_TITLE_ID} className="font-bold text-content-primary text-base font-heading">
+                Scaffold New DESIGN.md
+              </h3>
+              <p className="text-xs text-content-secondary">
+                Generate a structured design specification template for your codebase
+              </p>
             </div>
           </div>
           <button
@@ -323,7 +363,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
         <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {templateOptions.map((option) => (
+            {templateOptions.map(option => (
               <button
                 key={option.id}
                 type="button"

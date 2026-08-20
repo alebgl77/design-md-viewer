@@ -25,30 +25,53 @@ export function extractOverview(
   // 2. Scan for Overview / Philosophy / Principles / Guidelines sections
   for (const section of structure.sections) {
     const headingLower = section.heading.toLowerCase();
-    
+
     // Overview / Intro description
-    if ((headingLower.includes('overview') || headingLower.includes('introduction') || section.level === 1) && !description) {
+    if (
+      (headingLower.includes('overview') || headingLower.includes('introduction') || section.level === 1) &&
+      !description
+    ) {
       const firstParagraph = section.content
         .split('\n')
         .map(l => l.trim())
-        .find(l => l.length > 20 && !l.startsWith('#') && !l.startsWith('-') && !l.startsWith('|') && !l.startsWith('`'));
+        .find(
+          l =>
+            l.length > 20 &&
+            !l.startsWith('#') &&
+            !l.startsWith('-') &&
+            !l.startsWith('|') &&
+            !l.startsWith('`')
+        );
       if (firstParagraph) {
         description = firstParagraph;
       }
     }
 
     // Philosophy / Vision
-    if (headingLower.includes('philosoph') || headingLower.includes('vision') || headingLower.includes('concept')) {
+    if (
+      headingLower.includes('philosoph') ||
+      headingLower.includes('vision') ||
+      headingLower.includes('concept')
+    ) {
       philosophy = section.content.trim().split('\n\n')[0].replace(/[*_#]/g, '').trim();
     }
 
     // Tone / Aesthetic
-    if (headingLower.includes('tone') || headingLower.includes('aesthetic') || headingLower.includes('direction') || headingLower.includes('brand')) {
+    if (
+      headingLower.includes('tone') ||
+      headingLower.includes('aesthetic') ||
+      headingLower.includes('direction') ||
+      headingLower.includes('brand')
+    ) {
       visualTone = section.content.trim().split('\n\n')[0].replace(/[*_#]/g, '').trim();
     }
 
     // Principles
-    if (headingLower.includes('principle') || headingLower.includes('rule') || headingLower.includes('guideline')) {
+    if (
+      headingLower.includes('principle') ||
+      headingLower.includes('rule') ||
+      headingLower.includes('guideline')
+    ) {
       const lines = section.content.split('\n');
       lines.forEach(l => {
         const itemMatch = l.trim().match(/^[-*+]\s+(.+)$/);

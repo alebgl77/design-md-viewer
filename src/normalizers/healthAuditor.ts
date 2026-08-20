@@ -39,7 +39,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
   const palette = [...new Map(system.colors.map(c => [c.hex.toLowerCase(), c])).values()];
 
   // 1. Accessibility & Contrast Checks
-  palette.forEach((col) => {
+  palette.forEach(col => {
     if (col.contrastWithBg && !col.contrastWithBg.aaCompliant && col.paletteGroup !== 'surface') {
       issues.push({
         id: `a11y-contrast-${col.id}`,
@@ -68,16 +68,17 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
       const rgb1 = hexToRgb(c1.hex);
       const rgb2 = hexToRgb(c2.hex);
       const distance = Math.sqrt(
-        Math.pow(rgb1.r - rgb2.r, 2) +
-        Math.pow(rgb1.g - rgb2.g, 2) +
-        Math.pow(rgb1.b - rgb2.b, 2)
+        Math.pow(rgb1.r - rgb2.r, 2) + Math.pow(rgb1.g - rgb2.g, 2) + Math.pow(rgb1.b - rgb2.b, 2)
       );
 
       // Distance < 25 indicates visually almost indistinguishable colors
       if (distance > 0 && distance < 25) {
         nearDuplicatePairs.push({ col1: c1, col2: c2, distance });
         // Pairs beyond the cap are still reported, they simply cost nothing more.
-        const impactScore = Math.min(DUPLICATE_PAIR_PENALTY, CONSISTENCY_PENALTY_CAP - consistencyPenaltySpent);
+        const impactScore = Math.min(
+          DUPLICATE_PAIR_PENALTY,
+          CONSISTENCY_PENALTY_CAP - consistencyPenaltySpent
+        );
         consistencyPenaltySpent += impactScore;
 
         issues.push({
@@ -98,7 +99,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
   let gridCompliantCount = 0;
   let totalMeasurements = 0;
 
-  system.spacing.forEach((s) => {
+  system.spacing.forEach(s => {
     totalMeasurements++;
     if (s.pxValue > 0 && s.pxValue % 4 !== 0 && s.pxValue % 8 !== 0) {
       issues.push({
@@ -117,7 +118,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
     }
   });
 
-  system.typography.forEach((t) => {
+  system.typography.forEach(t => {
     if (t.fontSizePx) {
       totalMeasurements++;
       if (t.fontSizePx % 2 !== 0 && t.fontSizePx > 11) {
@@ -138,9 +139,8 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
     }
   });
 
-  const gridCompliancePercent = totalMeasurements > 0
-    ? Math.round((gridCompliantCount / totalMeasurements) * 100)
-    : 100;
+  const gridCompliancePercent =
+    totalMeasurements > 0 ? Math.round((gridCompliantCount / totalMeasurements) * 100) : 100;
 
   // 4. Semantic Completeness
   const semanticGroups = new Set(palette.map(c => c.paletteGroup));
@@ -176,7 +176,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
   }
 
   // 5. Component States Completeness
-  system.components.forEach((comp) => {
+  system.components.forEach(comp => {
     if (comp.previewType === 'button' || comp.name.toLowerCase().includes('button')) {
       const states = (comp.states || []).map(s => s.toLowerCase());
       const missingStates: string[] = [];
@@ -214,9 +214,11 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
 
   let summary: string;
   if (grade === 'A+' || grade === 'A') {
-    summary = 'Outstanding architecture! Clean tokens, high accessibility compliance, and well-structured grid rhythm.';
+    summary =
+      'Outstanding architecture! Clean tokens, high accessibility compliance, and well-structured grid rhythm.';
   } else if (grade === 'B') {
-    summary = 'Solid foundations. Minor consistency or accessibility adjustments recommended before production release.';
+    summary =
+      'Solid foundations. Minor consistency or accessibility adjustments recommended before production release.';
   } else {
     summary = 'Requires attention. Several duplicate colors or off-grid values could be streamlined.';
   }

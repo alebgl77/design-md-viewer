@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  sanitizeText,
-  sanitizeTextPreservingLines,
-  isSafeCssValue,
-  isSafeIdentifier,
-} from '../safety';
+import { sanitizeText, sanitizeTextPreservingLines, isSafeCssValue, isSafeIdentifier } from '../safety';
 
 const SCRIPT_DOC = '# Title\n\n<script>\nwindow.stolen = document.cookie;\n</script>\n\nBody text.\n';
 

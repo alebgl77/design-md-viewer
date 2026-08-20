@@ -13,12 +13,7 @@ interface SearchModalProps {
   onSelectResult: (category: string, lineNumber?: number) => void;
 }
 
-export const SearchModal: React.FC<SearchModalProps> = ({
-  isOpen,
-  onClose,
-  system,
-  onSelectResult,
-}) => {
+export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, system, onSelectResult }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -86,7 +81,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           data-modal-autofocus
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={e => setQuery(e.target.value)}
           placeholder="Search tokens, colors, typography, components, spacing..."
           className="w-full px-3 py-4 bg-transparent text-content-primary placeholder-content-muted text-sm focus:outline-none"
         />
@@ -131,7 +126,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                     </span>
                     <div className="truncate">
                       <div className="font-semibold text-xs text-content-primary truncate">{res.title}</div>
-                      <div className="text-[11px] text-content-secondary font-mono truncate">{res.subtitle}</div>
+                      <div className="text-[11px] text-content-secondary font-mono truncate">
+                        {res.subtitle}
+                      </div>
                     </div>
                   </div>
 
@@ -157,10 +154,19 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       {/* Search Footer */}
       <div className="p-3 border-t border-line-subtle bg-surface-inset text-[11px] text-content-muted flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span>Use <kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">↑</kbd> <kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">↓</kbd> to navigate</span>
-          <span><kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">↵</kbd> to select</span>
+          <span>
+            Use <kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">↑</kbd>{' '}
+            <kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">↓</kbd> to
+            navigate
+          </span>
+          <span>
+            <kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">↵</kbd> to
+            select
+          </span>
         </div>
-        <span><kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">ESC</kbd> to close</span>
+        <span>
+          <kbd className="px-1 py-0.5 rounded-sm bg-surface-overlay text-content-secondary">ESC</kbd> to close
+        </span>
       </div>
     </Modal>
   );

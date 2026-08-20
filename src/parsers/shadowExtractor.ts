@@ -2,20 +2,16 @@ import { ShadowToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 import { isSafeCssValue } from './safety';
 
-export function extractShadows(
-  structure: ParsedMarkdownStructure
-): ShadowToken[] {
+export function extractShadows(structure: ParsedMarkdownStructure): ShadowToken[] {
   const shadows: ShadowToken[] = [];
   const seen = new Set<string>();
 
-  function addShadow(
-    name: string,
-    value: string,
-    provenance: Provenance,
-    role?: string
-  ) {
+  function addShadow(name: string, value: string, provenance: Provenance, role?: string) {
     if (!isSafeCssValue(value)) return;
-    const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
+    const cleanName = name
+      .replace(/^(--|\$)/, '')
+      .replace(/[-_]/g, ' ')
+      .trim();
     const dedupeKey = cleanName.toLowerCase();
     if (seen.has(dedupeKey)) return;
     seen.add(dedupeKey);
@@ -43,18 +39,16 @@ export function extractShadows(
     const lines = block.code.split('\n');
     lines.forEach((line, idx) => {
       const lineNum = block.startLine + idx + 1;
-      const shadowVarMatch = line.match(/^\s*(--(?:shadow|box-shadow|elevation)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
+      const shadowVarMatch = line.match(
+        /^\s*(--(?:shadow|box-shadow|elevation)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i
+      );
       if (shadowVarMatch) {
-        addShadow(
-          shadowVarMatch[1].replace(/^--(?:shadow-|box-shadow-|elevation-)/, ''),
-          shadowVarMatch[2],
-          {
-            sectionTitle: block.headingPath[block.headingPath.length - 1],
-            headingPath: block.headingPath,
-            lineNumber: lineNum,
-            rawSourceSnippet: line.trim(),
-          }
-        );
+        addShadow(shadowVarMatch[1].replace(/^--(?:shadow-|box-shadow-|elevation-)/, ''), shadowVarMatch[2], {
+          sectionTitle: block.headingPath[block.headingPath.length - 1],
+          headingPath: block.headingPath,
+          lineNumber: lineNum,
+          rawSourceSnippet: line.trim(),
+        });
       }
     });
   }
@@ -75,7 +69,8 @@ export function extractShadows(
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
         const nameVal = nameIdx !== -1 ? row[nameIdx] : row[0];
-        const valVal = valIdx !== -1 ? row[valIdx] : (row.find(c => /px/i.test(c) || /rgba?/i.test(c)) || row[1]);
+        const valVal =
+          valIdx !== -1 ? row[valIdx] : row.find(c => /px/i.test(c) || /rgba?/i.test(c)) || row[1];
         const roleVal = roleIdx !== -1 ? row[roleIdx] : undefined;
 
         if (nameVal && valVal) {
@@ -99,8 +94,16 @@ export function extractShadows(
   for (const item of structure.listItems) {
     const isShadowSection = item.headingPath.some(h => /shadow|elevation|depth|box-shadow/i.test(h));
     if (isShadowSection) {
-      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([^`*]+)[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i);
-      if (kvMatch && (kvMatch[2].includes('px') || kvMatch[2].includes('rgba') || kvMatch[2].includes('rgb') || kvMatch[2].includes('none'))) {
+      const kvMatch = item.text.match(
+        /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([^`*]+)[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i
+      );
+      if (
+        kvMatch &&
+        (kvMatch[2].includes('px') ||
+          kvMatch[2].includes('rgba') ||
+          kvMatch[2].includes('rgb') ||
+          kvMatch[2].includes('none'))
+      ) {
         addShadow(
           kvMatch[1].trim(),
           kvMatch[2].trim(),

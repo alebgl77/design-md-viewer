@@ -11,10 +11,7 @@ interface SpacingViewProps {
   onNavigateToSource?: (lineNumber?: number) => void;
 }
 
-export const SpacingView: React.FC<SpacingViewProps> = ({
-  spacing,
-  onNavigateToSource,
-}) => {
+export const SpacingView: React.FC<SpacingViewProps> = ({ spacing, onNavigateToSource }) => {
   const [viewMode, setViewMode] = useState<'bars' | 'boxes'>('bars');
 
   const maxPx = Math.max(...spacing.map(s => s.pxValue), 64);
@@ -71,15 +68,25 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
             </caption>
             <thead className="bg-surface-inset border-b border-line-subtle text-content-secondary uppercase font-semibold text-[11px]">
               <tr>
-                <th scope="col" className="p-3">Token</th>
-                <th scope="col" className="p-3">Value</th>
-                <th scope="col" className="p-3 w-full">Scale</th>
-                <th scope="col" className="p-3 text-right">Pixels</th>
-                <th scope="col" className="p-3 text-right">Actions</th>
+                <th scope="col" className="p-3">
+                  Token
+                </th>
+                <th scope="col" className="p-3">
+                  Value
+                </th>
+                <th scope="col" className="p-3 w-full">
+                  Scale
+                </th>
+                <th scope="col" className="p-3 text-right">
+                  Pixels
+                </th>
+                <th scope="col" className="p-3 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line-subtle">
-              {spacing.map((token) => {
+              {spacing.map(token => {
                 const widthPercent = Math.max(3, Math.min(100, (token.pxValue / maxPx) * 100));
                 const cssVar = `--space-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${token.value};`;
 
@@ -130,7 +137,7 @@ export const SpacingView: React.FC<SpacingViewProps> = ({
       ) : (
         /* Boxes Grid Visualization */
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {spacing.map((token) => (
+          {spacing.map(token => (
             <div
               key={token.id}
               className="p-5 rounded-lg bg-surface-raised/60 border border-line-subtle hover:border-line flex flex-col items-center justify-between gap-4 text-center shadow-deep transition-colors"

@@ -29,7 +29,7 @@ Here is a real document. Nothing about it was written for this tool:
 ## Colour
 
 | Token   | Value   | Usage                  |
-|---------|---------|------------------------|
+| ------- | ------- | ---------------------- |
 | Primary | #2563eb | Primary actions, links |
 | Surface | #f8fafc | Page background        |
 | Danger  | #dc2626 | Destructive actions    |
@@ -37,7 +37,7 @@ Here is a real document. Nothing about it was written for this tool:
 ## Type Scale
 
 | Token   | Size | Weight | Line height |
-|---------|------|--------|-------------|
+| ------- | ---- | ------ | ----------- |
 | Display | 48px | 700    | 1.1         |
 | Body    | 16px | 400    | 1.5         |
 
@@ -54,21 +54,21 @@ Here is a real document. Nothing about it was written for this tool:
 
 Thirty-two lines in. This comes out:
 
-| Token | Value | Contrast on the declared surface | Source |
-| --- | --- | --- | --- |
-| Primary | `#2563eb` | 5.16:1 — passes AA | `orbit.md:9` |
-| Surface | `#f8fafc` | 17.06:1 — passes AA | `orbit.md:10` |
-| Danger | `#dc2626` | 4.82:1 — passes AA | `orbit.md:11` |
+| Token   | Value     | Contrast on the declared surface | Source        |
+| ------- | --------- | -------------------------------- | ------------- |
+| Primary | `#2563eb` | 5.16:1 — passes AA               | `orbit.md:9`  |
+| Surface | `#f8fafc` | 17.06:1 — passes AA              | `orbit.md:10` |
+| Danger  | `#dc2626` | 4.82:1 — passes AA               | `orbit.md:11` |
 
-| Token | Size | Weight | Line height | Source |
-| --- | --- | --- | --- | --- |
-| Display | 48px | 700 | 1.1 | `orbit.md:18` |
-| Body | 16px | 400 | 1.5 | `orbit.md:19` |
+| Token   | Size | Weight | Line height | Source        |
+| ------- | ---- | ------ | ----------- | ------------- |
+| Display | 48px | 700    | 1.1         | `orbit.md:18` |
+| Body    | 16px | 400    | 1.5         | `orbit.md:19` |
 
-| Token | Duration | Easing | Source |
-| --- | --- | --- | --- |
-| fast | 150ms | `ease-out` | `orbit.md:30` |
-| base | 250ms | `cubic-bezier(0.4, 0, 0.2, 1)` | `orbit.md:31` |
+| Token | Duration | Easing                         | Source        |
+| ----- | -------- | ------------------------------ | ------------- |
+| fast  | 150ms    | `ease-out`                     | `orbit.md:30` |
+| base  | 250ms    | `cubic-bezier(0.4, 0, 0.2, 1)` | `orbit.md:31` |
 
 Categories detected: **Colors, Typography, Spacing, Motion** — and only those. The document declares no
 shadows, no breakpoints and no components, so those views never appear. A colors-only file gets a
@@ -76,12 +76,12 @@ colors-only app.
 
 Every row above carries the line number it came from. Click it and the Source view scrolls to that exact
 line, highlighted. That is the point of the whole project: when the parser gets something wrong, you can
-see *why* in one click, instead of trusting it.
+see _why_ in one click, instead of trusting it.
 
 ## Why
 
 Design systems get written down long before they get coded — a `DESIGN.md`, a Notion export, a brand
-guideline PDF pasted into a repo. That document is readable but not *inspectable*. You cannot see the
+guideline PDF pasted into a repo. That document is readable but not _inspectable_. You cannot see the
 palette. You cannot check a contrast ratio. You cannot tell whether the spacing scale is actually a scale.
 And you certainly cannot hand it to Tailwind.
 
@@ -149,7 +149,7 @@ interface Provenance {
 type ExtractionConfidence = 'explicit' | 'inferred';
 ```
 
-Because provenance is mandatory in the schema, an extractor *cannot* emit a value it is unable to point at.
+Because provenance is mandatory in the schema, an extractor _cannot_ emit a value it is unable to point at.
 And `confidence` separates what the document stated from what the parser derived, so the two are never
 silently blended.
 
@@ -160,7 +160,7 @@ silently blended.
 - **Health audit** — a scored report (A+ to D) covering WCAG AA contrast failures, near-duplicate colors,
   off-grid spacing, odd-pixel font sizes, missing functional palettes, and components with incomplete
   interactive states. Every issue carries a recommendation and a weighted impact score.
-- **Accessibility tooling** — contrast computed against the document's *declared* background rather than a
+- **Accessibility tooling** — contrast computed against the document's _declared_ background rather than a
   hardcoded one, with AA/AAA verdicts, plus color-vision simulation for protanopia, deuteranopia,
   tritanopia and achromatopsia.
 - **Eight export formats** — W3C Token JSON, Tailwind v4 `@theme`, Tailwind v3 config, CSS custom
@@ -202,13 +202,13 @@ The build emits relative asset URLs, so `dist/` works from a domain root or any 
 
 ## Tech stack
 
-| Layer | Choice |
-| --- | --- |
-| UI | React 18 + TypeScript (strict) |
-| Build | Vite 6 |
+| Layer   | Choice                                          |
+| ------- | ----------------------------------------------- |
+| UI      | React 18 + TypeScript (strict)                  |
+| Build   | Vite 6                                          |
 | Styling | Tailwind CSS 3, driven by CSS custom properties |
-| Tests | Vitest |
-| Icons | lucide-react |
+| Tests   | Vitest                                          |
+| Icons   | lucide-react                                    |
 
 No router: view switching is plain React state, which keeps the bundle small and static hosting trivial.
 

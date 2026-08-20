@@ -133,8 +133,12 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             <Bot className="w-4 h-4" />
           </div>
           <div>
-            <h2 id={TITLE_ID} className="text-base font-bold">AI Enrichment Engine</h2>
-            <div className="text-xs text-content-secondary font-normal">Optional semantic analysis &amp; tone extraction</div>
+            <h2 id={TITLE_ID} className="text-base font-bold">
+              AI Enrichment Engine
+            </h2>
+            <div className="text-xs text-content-secondary font-normal">
+              Optional semantic analysis &amp; tone extraction
+            </div>
           </div>
         </div>
         <button
@@ -154,19 +158,27 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
             Strict Anti-Hallucination Policy
           </div>
           <p className="text-content-secondary">
-            AI enrichment only extracts higher-level conceptual insights (taglines, design tone, component summaries). It will <strong className="text-content-primary">never invent fake hex codes or pixel measurements</strong>.
+            AI enrichment only extracts higher-level conceptual insights (taglines, design tone, component
+            summaries). It will{' '}
+            <strong className="text-content-primary">
+              never invent fake hex codes or pixel measurements
+            </strong>
+            .
           </p>
         </div>
 
         <div>
-          <label htmlFor="ai-settings-api-key" className="block text-xs font-semibold text-content-primary mb-1.5">
+          <label
+            htmlFor="ai-settings-api-key"
+            className="block text-xs font-semibold text-content-primary mb-1.5"
+          >
             Google Gemini API Key
           </label>
           <input
             id="ai-settings-api-key"
             type="password"
             value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            onChange={e => setApiKey(e.target.value)}
             placeholder="AIzaSy..."
             className="w-full px-3 py-2 rounded-sm bg-surface-inset border border-line focus:border-accent text-content-primary text-xs font-mono placeholder-content-muted focus:outline-none"
           />
@@ -187,13 +199,16 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
         </div>
 
         <div>
-          <label htmlFor="ai-settings-model" className="block text-xs font-semibold text-content-primary mb-1.5">
+          <label
+            htmlFor="ai-settings-model"
+            className="block text-xs font-semibold text-content-primary mb-1.5"
+          >
             Model
           </label>
           <select
             id="ai-settings-model"
             value={model}
-            onChange={(e) => setModel(e.target.value)}
+            onChange={e => setModel(e.target.value)}
             className="w-full px-3 py-2 rounded-sm bg-surface-inset border border-line text-content-primary text-xs focus:border-accent focus:outline-none"
           >
             <option value="gemini-1.5-flash">gemini-1.5-flash (Fast &amp; Recommended)</option>
@@ -210,7 +225,11 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
                 : 'bg-status-danger/10 border-status-danger/30 text-status-danger'
             }`}
           >
-            {isSuccess ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+            {isSuccess ? (
+              <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            )}
             <span>{statusMessage}</span>
           </div>
         )}

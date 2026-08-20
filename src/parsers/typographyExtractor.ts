@@ -16,9 +16,7 @@ function cleanCell(cell: string | undefined): string {
   return cell ? cell.replace(/[`*]/g, '').trim() : '';
 }
 
-export function extractTypography(
-  structure: ParsedMarkdownStructure
-): TypographyToken[] {
+export function extractTypography(structure: ParsedMarkdownStructure): TypographyToken[] {
   const typography: TypographyToken[] = [];
   const seenKeys = new Set<string>();
 
@@ -104,9 +102,7 @@ export function extractTypography(
         const nameVal = cleanCell(rawName);
         // Without a size column, only a cell that is itself a length can stand in for one.
         const sizeVal =
-          sizeIdx !== -1
-            ? cleanCell(row[sizeIdx])
-            : row.map(cleanCell).find(c => LENGTH_VALUE.test(c)) || '';
+          sizeIdx !== -1 ? cleanCell(row[sizeIdx]) : row.map(cleanCell).find(c => LENGTH_VALUE.test(c)) || '';
         const weightVal = weightIdx !== -1 ? cleanCell(row[weightIdx]) : '400';
         const lhVal = lhIdx !== -1 ? cleanCell(row[lhIdx]) : '';
         const familyVal = familyIdx !== -1 ? cleanCell(row[familyIdx]) : globalFontFamily;
@@ -139,7 +135,9 @@ export function extractTypography(
     lines.forEach((line, idx) => {
       const lineNum = block.startLine + idx + 1;
       // Matches: --font-size-h1: 32px; or --text-xl: 1.25rem;
-      const typoVarMatch = line.match(/^\s*(--(?:font-size|text|font|typography)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
+      const typoVarMatch = line.match(
+        /^\s*(--(?:font-size|text|font|typography)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i
+      );
       if (typoVarMatch) {
         const varName = typoVarMatch[1];
         const rawVal = typoVarMatch[2].trim();
@@ -174,7 +172,9 @@ export function extractTypography(
 
     // Matches: - **H1**: 36px, Bold, Line height 44px
     // or - H1: 32px / 40px, 700
-    const listTypoMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*([\d.]+(?:px|rem|em|pt))\s*(?:\/\s*([\d.]+(?:px|rem|em|pt|\d+)))?(?:,\s*([a-zA-Z0-9_\-\s]+))?(?:,\s*(.+))?$/i);
+    const listTypoMatch = item.text.match(
+      /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*([\d.]+(?:px|rem|em|pt))\s*(?:\/\s*([\d.]+(?:px|rem|em|pt|\d+)))?(?:,\s*([a-zA-Z0-9_\-\s]+))?(?:,\s*(.+))?$/i
+    );
 
     if (listTypoMatch) {
       const name = listTypoMatch[1].trim();
@@ -182,22 +182,12 @@ export function extractTypography(
       const lh = listTypoMatch[3] ? listTypoMatch[3].trim() : undefined;
       const weight = listTypoMatch[4] ? listTypoMatch[4].trim() : 400;
 
-      addTypography(
-        name,
-        globalFontFamily,
-        size,
-        weight,
-        lh,
-        undefined,
-        undefined,
-        name,
-        {
-          sectionTitle: item.headingPath[item.headingPath.length - 1],
-          headingPath: item.headingPath,
-          lineNumber: item.lineNumber,
-          rawSourceSnippet: item.raw,
-        }
-      );
+      addTypography(name, globalFontFamily, size, weight, lh, undefined, undefined, name, {
+        sectionTitle: item.headingPath[item.headingPath.length - 1],
+        headingPath: item.headingPath,
+        lineNumber: item.lineNumber,
+        rawSourceSnippet: item.raw,
+      });
     } else if (isTypoSection) {
       // General match for sizes in typo section (e.g. - Body: 16px Regular)
       const generalSizeMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*(.+)$/);
@@ -210,7 +200,11 @@ export function extractTypography(
             name,
             globalFontFamily,
             sizeFound[1],
-            rest.includes('bold') || rest.includes('700') ? 700 : (rest.includes('medium') || rest.includes('500') ? 500 : 400),
+            rest.includes('bold') || rest.includes('700')
+              ? 700
+              : rest.includes('medium') || rest.includes('500')
+                ? 500
+                : 400,
             undefined,
             undefined,
             undefined,

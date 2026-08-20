@@ -2,9 +2,7 @@ import { MotionToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 import { parseDurationMs } from '../normalizers/unitNormalizer';
 
-export function extractMotion(
-  structure: ParsedMarkdownStructure
-): MotionToken[] {
+export function extractMotion(structure: ParsedMarkdownStructure): MotionToken[] {
   const motion: MotionToken[] = [];
   const seen = new Set<string>();
 
@@ -16,7 +14,10 @@ export function extractMotion(
     provenance?: Provenance,
     usage?: string
   ) {
-    const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
+    const cleanName = name
+      .replace(/^(--|\$)/, '')
+      .replace(/[-_]/g, ' ')
+      .trim();
     if (seen.has(cleanName.toLowerCase())) return;
     seen.add(cleanName.toLowerCase());
 
@@ -43,7 +44,9 @@ export function extractMotion(
     const lines = block.code.split('\n');
     lines.forEach((line, idx) => {
       const lineNum = block.startLine + idx + 1;
-      const motionVar = line.match(/^\s*(--(?:duration|transition|motion|ease)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
+      const motionVar = line.match(
+        /^\s*(--(?:duration|transition|motion|ease)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i
+      );
       if (motionVar) {
         const val = motionVar[2].trim();
         const isDuration = /\d+(?:ms|s)/i.test(val);
@@ -104,7 +107,9 @@ export function extractMotion(
       // "150ms ease-out", "150ms, ease-out" and "150ms / ease-out" are all common in the wild.
       // The easing itself is a keyword optionally carrying an argument list, so cubic-bezier(...)
       // is captured whole rather than clipped at the parenthesis.
-      const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*(\d+(?:ms|s))[`*]*(?:\s*[,/]?\s*[`*]*([a-zA-Z][\w-]*(?:\s*\([^)]*\))?)[`*]*)?(?:\s*[-—(]\s*(.*?)\)?)?\s*$/i);
+      const kvMatch = item.text.match(
+        /^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*(\d+(?:ms|s))[`*]*(?:\s*[,/]?\s*[`*]*([a-zA-Z][\w-]*(?:\s*\([^)]*\))?)[`*]*)?(?:\s*[-—(]\s*(.*?)\)?)?\s*$/i
+      );
       if (kvMatch) {
         addMotion(
           kvMatch[1].trim(),

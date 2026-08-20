@@ -8,9 +8,9 @@ const BASE_FONT_SIZE = 16;
 export function parsePxValue(value: string | number | undefined): number {
   if (typeof value === 'number') return value;
   if (!value) return 0;
-  
+
   const str = value.toString().trim().toLowerCase();
-  
+
   // 16px
   const pxMatch = str.match(/^([\d.]+)\s*px$/);
   if (pxMatch) return parseFloat(pxMatch[1]);
@@ -38,7 +38,7 @@ export function parsePxValue(value: string | number | undefined): number {
 export function parseDurationMs(value: string | undefined): number {
   if (!value) return 0;
   const str = value.trim().toLowerCase();
-  
+
   // 200ms
   const msMatch = str.match(/^([\d.]+)\s*ms$/);
   if (msMatch) return parseFloat(msMatch[1]);

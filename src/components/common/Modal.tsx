@@ -24,7 +24,7 @@ function getFocusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
     // getClientRects() is empty for display:none / visibility:hidden subtrees,
     // so hidden controls never become trap boundaries.
-    (el) => el.getClientRects().length > 0
+    el => el.getClientRects().length > 0
   );
 }
 
@@ -169,16 +169,13 @@ export const Modal: React.FC<ModalProps> = ({
 
   return createPortal(
     <div
-      className={clsx(
-        'fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm',
-        ALIGN_STYLES[align]
-      )}
+      className={clsx('fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm', ALIGN_STYLES[align])}
       // Closing on mouseup alone would also fire when a text selection that
       // started inside the panel happens to end on the backdrop.
-      onMouseDown={(e) => {
+      onMouseDown={e => {
         pointerDownOnBackdrop.current = e.target === e.currentTarget;
       }}
-      onClick={(e) => {
+      onClick={e => {
         if (e.target === e.currentTarget && pointerDownOnBackdrop.current) {
           onClose();
         }

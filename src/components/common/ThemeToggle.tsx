@@ -91,7 +91,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className }) => {
   }, []);
 
   const handleClick = useCallback(() => {
-    setPreference((current) => CYCLE[(CYCLE.indexOf(current) + 1) % CYCLE.length]);
+    setPreference(current => CYCLE[(CYCLE.indexOf(current) + 1) % CYCLE.length]);
   }, []);
 
   const resolved: ResolvedTheme = preference === 'system' ? (isSystemLight ? 'light' : 'dark') : preference;

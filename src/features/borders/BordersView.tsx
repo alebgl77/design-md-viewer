@@ -31,7 +31,7 @@ export const BordersView: React.FC<BordersViewProps> = ({ borders, onNavigateToS
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {borders.map((token) => {
+        {borders.map(token => {
           const borderColor = token.color || FALLBACK_BORDER_COLOR;
           const borderStyleStr = `${token.width} ${token.style} ${borderColor}`;
           const cssVar = `--border-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${borderStyleStr};`;
@@ -44,7 +44,9 @@ export const BordersView: React.FC<BordersViewProps> = ({ borders, onNavigateToS
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <div className="font-bold text-sm text-content-primary">{token.name}</div>
-                  <div className="text-xs text-content-secondary font-mono tabular-nums truncate">{borderStyleStr}</div>
+                  <div className="text-xs text-content-secondary font-mono tabular-nums truncate">
+                    {borderStyleStr}
+                  </div>
                 </div>
                 <ProvenancePopover
                   provenance={token.provenance}

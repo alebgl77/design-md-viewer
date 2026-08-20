@@ -101,7 +101,8 @@ describe('Provenance: line numbers index the original document', () => {
   });
 
   it('should stay aligned when a script block is stripped out', () => {
-    const doc = '# Guarded\n\n<script>\nlet a = 1;\nlet b = 2;\n</script>\n\n## Colors\n\n* **Primary Brand**: #1d4ed8\n';
+    const doc =
+      '# Guarded\n\n<script>\nlet a = 1;\nlet b = 2;\n</script>\n\n## Colors\n\n* **Primary Brand**: #1d4ed8\n';
 
     expect(parseMarkdownStructure(doc).rawLines).toHaveLength(doc.split(/\r?\n/).length);
 

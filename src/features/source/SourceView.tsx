@@ -50,11 +50,7 @@ const SourceLine = React.memo(function SourceLine({ lineNumber, text, isHighligh
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-export const SourceView: React.FC<SourceViewProps> = ({
-  rawContent,
-  sections,
-  highlightLine,
-}) => {
+export const SourceView: React.FC<SourceViewProps> = ({ rawContent, sections, highlightLine }) => {
   const [viewMode, setViewMode] = useState<'raw' | 'rendered'>('raw');
   const [windowStart, setWindowStart] = useState(0);
   const [jumpValue, setJumpValue] = useState('');
@@ -73,7 +69,7 @@ export const SourceView: React.FC<SourceViewProps> = ({
   const visibleLines = useMemo(() => lines.slice(start, end), [lines, start, end]);
 
   const requestScroll = (line: number) => {
-    setScrollRequest((prev) => ({ line, nonce: (prev?.nonce ?? 0) + 1 }));
+    setScrollRequest(prev => ({ line, nonce: (prev?.nonce ?? 0) + 1 }));
   };
 
   // A freshly loaded document starts at the top.
@@ -179,7 +175,7 @@ export const SourceView: React.FC<SourceViewProps> = ({
           </h2>
 
           <div className="space-y-1">
-            {sections.map((sec) => (
+            {sections.map(sec => (
               <button
                 key={sec.id}
                 type="button"
@@ -220,7 +216,7 @@ export const SourceView: React.FC<SourceViewProps> = ({
                         min={1}
                         max={totalLines}
                         value={jumpValue}
-                        onChange={(e) => setJumpValue(e.target.value)}
+                        onChange={e => setJumpValue(e.target.value)}
                         placeholder="Line"
                         className="w-20 px-2 py-1 rounded-sm bg-surface-inset border border-line text-[11px] font-mono text-content-primary placeholder-content-muted tabular-nums focus:outline-none focus:border-accent"
                       />
@@ -274,7 +270,7 @@ export const SourceView: React.FC<SourceViewProps> = ({
             </>
           ) : (
             <div className="max-h-[70vh] overflow-y-auto p-6 space-y-6">
-              {sections.map((sec) => (
+              {sections.map(sec => (
                 <div key={sec.id} className="space-y-2 pb-4 border-b border-line-subtle">
                   <div className="flex items-center justify-between gap-3">
                     <h3

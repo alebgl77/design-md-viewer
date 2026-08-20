@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   // Theming is driven entirely by the CSS custom properties in src/index.css,
   // which flip on [data-theme]. The `dark:` variant is therefore INTENTIONALLY
   // UNUSED — a single utility such as `bg-surface-base` is already correct in
@@ -16,10 +13,10 @@ export default {
     // removes Tailwind's `rounded` / `rounded-2xl` / `rounded-3xl` defaults so
     // there are exactly five legal corner radii in the product.
     borderRadius: {
-      sm: '6px',    // chips, badges, inputs, small controls
-      md: '10px',   // buttons, list items, sidebar entries
-      lg: '14px',   // cards, panels, table containers
-      xl: '20px',   // modals, the drop zone
+      sm: '6px', // chips, badges, inputs, small controls
+      md: '10px', // buttons, list items, sidebar entries
+      lg: '14px', // cards, panels, table containers
+      xl: '20px', // modals, the drop zone
       full: '9999px', // ONLY numeric count pills and status dots
     },
     extend: {
@@ -63,11 +60,13 @@ export default {
       // flip with the theme so the same utility reads as depth on the dark
       // ground and as a soft lift (not dirt) on the light one.
       boxShadow: {
-        'chromatic': '0 0 0 1px rgb(var(--accent) / 0.25), 0 10px 30px -22px rgb(var(--shadow-color) / var(--shadow-alpha))',
-        'chromatic-glow': '0 0 0 4px rgb(var(--accent) / 0.15), 0 10px 30px -20px rgb(var(--shadow-color) / var(--shadow-alpha))',
-        'deep': '0 10px 30px -22px rgb(var(--shadow-color) / var(--shadow-alpha))',
-      }
+        chromatic:
+          '0 0 0 1px rgb(var(--accent) / 0.25), 0 10px 30px -22px rgb(var(--shadow-color) / var(--shadow-alpha))',
+        'chromatic-glow':
+          '0 0 0 4px rgb(var(--accent) / 0.15), 0 10px 30px -20px rgb(var(--shadow-color) / var(--shadow-alpha))',
+        deep: '0 10px 30px -22px rgb(var(--shadow-color) / var(--shadow-alpha))',
+      },
     },
   },
   plugins: [],
-}
+};

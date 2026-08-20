@@ -77,9 +77,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               This view stopped rendering
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-content-secondary">
-              Your document was read, but one of the values it contains could not be displayed. The
-              failure is contained here — the file never left your browser and the rest of the
-              specification is still loaded.
+              Your document was read, but one of the values it contains could not be displayed. The failure is
+              contained here — the file never left your browser and the rest of the specification is still
+              loaded.
             </p>
 
             <div className="mt-4 rounded-md border border-line-subtle bg-surface-inset p-3">

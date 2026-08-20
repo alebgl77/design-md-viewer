@@ -67,7 +67,7 @@ Return a single JSON object strictly matching this schema:
       // Direct Gemini API call
       const model = config.model || 'gemini-1.5-flash';
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
-      
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ Return a single JSON object strictly matching this schema:
           generationConfig: {
             responseMimeType: 'application/json',
             temperature: 0.2,
-          }
+          },
         }),
       });
 
@@ -89,7 +89,10 @@ Return a single JSON object strictly matching this schema:
     }
 
     // Clean JSON markdown fences if any
-    const cleanJson = rawJsonText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+    const cleanJson = rawJsonText
+      .replace(/^```json\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
     const parsedData = JSON.parse(cleanJson);
     const validated = AiEnrichmentResponseSchema.safeParse(parsedData);
 

@@ -33,9 +33,27 @@ export function resolveTokensAndReferences(
   // Determine category of token
   function categorizeToken(name: string): string {
     const lower = name.toLowerCase();
-    if (lower.includes('color') || lower.includes('bg') || lower.includes('text') || lower.includes('border-color')) return 'Color';
-    if (lower.includes('font') || lower.includes('typography') || lower.includes('leading') || lower.includes('tracking')) return 'Typography';
-    if (lower.includes('space') || lower.includes('spacing') || lower.includes('gap') || lower.includes('pad')) return 'Spacing';
+    if (
+      lower.includes('color') ||
+      lower.includes('bg') ||
+      lower.includes('text') ||
+      lower.includes('border-color')
+    )
+      return 'Color';
+    if (
+      lower.includes('font') ||
+      lower.includes('typography') ||
+      lower.includes('leading') ||
+      lower.includes('tracking')
+    )
+      return 'Typography';
+    if (
+      lower.includes('space') ||
+      lower.includes('spacing') ||
+      lower.includes('gap') ||
+      lower.includes('pad')
+    )
+      return 'Spacing';
     if (lower.includes('radius') || lower.includes('rounded')) return 'Radius';
     if (lower.includes('shadow') || lower.includes('elevation')) return 'Shadow';
     if (lower.includes('breakpoint') || lower.includes('screen')) return 'Breakpoint';
@@ -82,7 +100,10 @@ export function resolveTokensAndReferences(
     const category = categorizeToken(name);
 
     tokenMap.set(name, {
-      id: `tok-${name.replace(/^--/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+      id: `tok-${name
+        .replace(/^--/, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')}`,
       name: name.replace(/^--/, ''),
       cssVariable: name,
       value: def.value,

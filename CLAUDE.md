@@ -55,7 +55,7 @@ Input files are treated as untrusted/adversarial. `src/parsers/safety.ts` strips
   (primary/secondary/muted), `accent` (DEFAULT/hover/contrast) and `status` (danger/warning/success), with a
   five-step radius scale (`sm` 6px through `xl` 20px, plus `full` for count pills only).
 - **Never write an arbitrary hex utility** (`bg-[#0b0f0c]`) in UI chrome. The one exception is values that
-  come from the *parsed user document* — colour swatches, shadow and font previews — which are data and
+  come from the _parsed user document_ — colour swatches, shadow and font previews — which are data and
   belong in inline `style={{ }}`, not in a token. `ComponentsView.tsx` also embeds hex inside the React
-  source it *generates* for the user to copy; that snippet must stay self-contained, so leave it alone.
+  source it _generates_ for the user to copy; that snippet must stay self-contained, so leave it alone.
 - New token categories require: an entry in `DesignSystem`/schema, an extractor, a wire-up in `pipeline.ts`'s `categoriesDetected`/count logic, a `features/<category>/*View.tsx`, and a case in `App.tsx`'s category switch and `DynamicSidebar`.
