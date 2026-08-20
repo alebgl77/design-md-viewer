@@ -335,20 +335,21 @@ export function exportToTypeScriptTheme(system: DesignSystem): string {
     return key || fallback;
   };
 
-  const colorsObj = system.colors.reduce((acc, c) => {
-    acc[uniqueKey(toCamelKey(c.name, 'color'), new Set(Object.keys(acc)))] = c.hex;
-    return acc;
-  }, Object.create(null) as Record<string, string>);
+  const buildCamelMap = (
+    tokens: Array<{ name: string; value: string }>,
+    fallback: string,
+  ): Record<string, string> => {
+    const map: Record<string, string> = Object.create(null);
+    const seen = new Set<string>();
+    tokens.forEach(token => {
+      map[uniqueKey(toCamelKey(token.name, fallback), seen)] = token.value;
+    });
+    return map;
+  };
 
-  const spacingObj = system.spacing.reduce((acc, s) => {
-    acc[uniqueKey(toCamelKey(s.name, 'space'), new Set(Object.keys(acc)))] = s.value;
-    return acc;
-  }, Object.create(null) as Record<string, string>);
-
-  const radiusObj = system.radii.reduce((acc, r) => {
-    acc[uniqueKey(toCamelKey(r.name, 'radius'), new Set(Object.keys(acc)))] = r.value;
-    return acc;
-  }, Object.create(null) as Record<string, string>);
+  const colorsObj = buildCamelMap(system.colors.map(c => ({ name: c.name, value: c.hex })), 'color');
+  const spacingObj = buildCamelMap(system.spacing.map(s => ({ name: s.name, value: s.value })), 'space');
+  const radiusObj = buildCamelMap(system.radii.map(r => ({ name: r.name, value: r.value })), 'radius');
 
   return `/**
  * TypeScript Design Tokens Definition

@@ -8,18 +8,140 @@ import {
   exportToScssVariables,
   exportToAiPromptRules,
 } from '../../utils/exportFormats';
-import { SAMPLE_MODERN_DESIGN_SYSTEM } from '../../samples/fixtures';
+import { SAMPLE_APEX_DESIGN_SYSTEM, SAMPLE_IAB2B_DESIGN_SYSTEM } from '../../samples/fixtures';
+
+/**
+ * A deliberately unremarkable system: light canvas, every swatch AA against it,
+ * no near-duplicate pair, a 4px grid and a button that documents its states.
+ * It exists so the top of the scoring range stays defended by a document that
+ * has nothing an auditor could legitimately object to.
+ */
+const WELL_FORMED_SYSTEM = `# Nimbus Core
+
+A light, high-contrast reference system.
+
+## Colors
+
+* **Background**: #ffffff
+* **Surface Card**: #e5e7eb
+* **Primary Brand**: #1d4ed8
+* **Secondary Brand**: #6d28d9
+* **Accent Teal**: #0f766e
+* **Success Green**: #166534
+* **Warning Amber**: #92400e
+* **Danger Red**: #b91c1c
+* **Text Primary**: #111827
+* **Text Muted**: #4b5563
+* **Border Strong**: #6b7280
+
+## Typography
+
+| Level | Size | Weight | Line Height |
+| :--- | :--- | :--- | :--- |
+| Display | 32px | 700 | 40px |
+| Heading | 24px | 600 | 32px |
+| Subheading | 20px | 600 | 28px |
+| Body | 16px | 400 | 24px |
+| Caption | 12px | 500 | 16px |
+
+## Spacing
+
+* **space-1**: 4px (tight icon gaps)
+* **space-2**: 8px (component inline padding)
+* **space-4**: 16px (standard component padding)
+* **space-6**: 24px (card separation)
+* **space-8**: 32px (section vertical rhythm)
+
+## Border Radius
+
+* **radius-sm**: 4px (badges and tags)
+* **radius-md**: 8px (buttons and inputs)
+* **radius-lg**: 16px (cards and modals)
+
+## Components
+
+### Button
+Primary interactive control.
+
+#### States
+* Default, Hover, Focus, Active, Disabled
+`;
 
 describe('Design System Health Auditor & Modern Enhancements', () => {
-  const system = parseDesignDocument(SAMPLE_MODERN_DESIGN_SYSTEM, 'apex.md');
+  const system = parseDesignDocument(SAMPLE_APEX_DESIGN_SYSTEM, 'apex.md');
 
   it('should calculate a high health score for well-structured design system', () => {
-    const report = auditDesignSystemHealth(system);
+    const report = auditDesignSystemHealth(parseDesignDocument(WELL_FORMED_SYSTEM, 'nimbus.md'));
 
     expect(report.score).toBeGreaterThanOrEqual(80);
     expect(['A+', 'A', 'B']).toContain(report.grade);
     expect(report.metrics.passedChecks).toBeGreaterThan(0);
     expect(report.metrics.gridCompliancePercent).toBeGreaterThanOrEqual(80);
+    expect(report.metrics.errorCount).toBe(0);
+    expect(report.metrics.warningCount).toBe(0);
+  });
+
+  it('should charge a dark system only for the contrast its own canvas produces', () => {
+    const report = auditDesignSystemHealth(system);
+
+    // Apex is well-formed everywhere the auditor can be objective: a clean 4px
+    // grid, no errors, and a B grade. It loses points solely because indigo and
+    // a subtle border sit below 4.5:1 on its near-black canvas, which the
+    // auditor charges regardless of whether the swatch carries body text.
+    expect(report.metrics.gridCompliancePercent).toBe(100);
+    expect(report.metrics.errorCount).toBe(0);
+    expect(report.grade).toBe('B');
+    expect(report.issues.every(i => i.category === 'accessibility' || i.category === 'consistency')).toBe(true);
+    expect(report.issues.every(i => i.impactScore > 0)).toBe(true);
+    // Every deduction is itemized: the score is the sum of what is shown.
+    const deductions = report.issues.reduce((acc, i) => acc + i.impactScore, 0);
+    expect(report.score).toBe(100 - deductions);
+  });
+
+  it('should characterize the real-world ia-b2b scrape without scoring it as clean', () => {
+    const scrape = parseDesignDocument(SAMPLE_IAB2B_DESIGN_SYSTEM, 'ia-b2b.md');
+    const report = auditDesignSystemHealth(scrape);
+
+    // A 22.4px base unit cannot satisfy a 4px grid, so this document legitimately
+    // sits in the lower band. What matters is that the reasons are itemized.
+    expect(report.metrics.gridCompliancePercent).toBeLessThan(100);
+    expect(report.issues.some(i => i.category === 'grid-rhythm')).toBe(true);
+    expect(report.issues.some(i => i.id.startsWith('grid-spacing-'))).toBe(true);
+    expect(report.metrics.errorCount).toBe(0);
+    expect(report.score).toBeGreaterThanOrEqual(20);
+  });
+
+  it('should report an accessibility issue for a deliberately failing color pair', () => {
+    const failingPair = `# Faint Contrast
+## Colors
+* **Background**: #ffffff
+* **Primary Brand**: #fef08a
+`;
+    const ds = parseDesignDocument(failingPair, 'faint.md');
+    const brand = ds.colors.find(c => c.name === 'Primary Brand');
+
+    expect(brand?.contrastWithBg?.bgHex).toBe('#ffffff');
+    expect(brand?.contrastWithBg?.aaCompliant).toBe(false);
+
+    const report = auditDesignSystemHealth(ds);
+    const issue = report.issues.find(i => i.category === 'accessibility');
+    expect(issue).toBeDefined();
+    expect(issue?.itemRef).toBe('Primary Brand');
+    expect(issue?.description).toContain('#ffffff');
+  });
+
+  it('should cap the aggregate consistency penalty at the itemized deductions', () => {
+    const rampDoc = `# Ramp
+## Colors
+${Array.from({ length: 10 }, (_, i) => `* **Slate ${i}**: #1e2${i}3b`).join('\n')}
+`;
+    const report = auditDesignSystemHealth(parseDesignDocument(rampDoc, 'ramp.md'));
+    const consistencyPenalty = report.issues
+      .filter(i => i.category === 'consistency')
+      .reduce((acc, i) => acc + i.impactScore, 0);
+
+    expect(report.metrics.nearDuplicatesFound).toBeGreaterThan(3);
+    expect(consistencyPenalty).toBeLessThanOrEqual(15);
   });
 
   it('should detect near-duplicate colors when present', () => {

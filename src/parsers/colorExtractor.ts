@@ -238,7 +238,7 @@ export function extractColors(
             lineNumber: item.lineNumber,
             rawSourceSnippet: item.raw,
           },
-          namePart
+          cleanColorName(namePart)
         );
       }
     }
@@ -271,7 +271,7 @@ function buildContrastReport(hex: string, backgroundHex?: string): ColorContrast
   const ratioOnDark = contrastRatio(hex, DARK_FALLBACK_BG);
 
   // With no declared canvas there is nothing honest to judge against, so we keep the historical
-  // behaviour of reporting the friendlier of the two default canvases.
+  // behavior of reporting the friendlier of the two default canvases.
   const bgHex = backgroundHex ?? (ratioOnLight > ratioOnDark ? LIGHT_FALLBACK_BG : DARK_FALLBACK_BG);
   const ratio = backgroundHex ? contrastRatio(hex, backgroundHex) : Math.max(ratioOnLight, ratioOnDark);
 
@@ -309,7 +309,7 @@ function floorTo2Decimals(value: number): number {
 function cleanColorName(rawName: string): string {
   const withoutMarkup = rawName.replace(/[`*_~·]+/g, ' ').trim();
   const isCustomProperty = /^(--|\$)/.test(withoutMarkup);
-  let identifier = withoutMarkup.replace(/^(?:--|\$)/, '').replace(/[-]+/g, ' ');
+  let identifier = withoutMarkup.replace(/^(?:--|\$)/, '').replace(/-+/g, ' ');
 
   if (isCustomProperty) {
     // "--color-bg" names the swatch "bg": the leading segment is the namespace every exporter
@@ -322,7 +322,7 @@ function cleanColorName(rawName: string): string {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, MAX_NAME_LENGTH)
-    .replace(/[\s.,:;|(){}[\]/-]+$/, '')
+    .replace(/^[\s.,:;|(){}[\]/]+|[\s.,:;|(){}[\]/]+$/g, '')
     .trim();
 }
 
@@ -350,9 +350,9 @@ function deriveInlineName(text: string, value: string): string {
   const boldLabel = text.match(/\*\*([^*]+)\*\*/);
   if (boldLabel) return boldLabel[1];
 
+  // Last resort, the label position: whatever precedes the value, else whatever follows it.
   const valueIndex = text.indexOf(value);
-  const before = text.slice(0, valueIndex).trim();
-  return before || text.slice(valueIndex + value.length).trim();
+  return cleanColorName(text.slice(0, valueIndex)) || text.slice(valueIndex + value.length);
 }
 
 function rememberAlias(token: ColorToken, candidate: string): void {
