@@ -147,6 +147,8 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
           {filteredColors.map((color) => {
             const renderedHex = simulateColorVision(color.hex, visionMode);
             const contrast = color.contrastWithBg;
+            // Overlay legibility depends on the swatch itself, not on the document background.
+            const swatchReadsOnLight = contrast ? contrast.ratioOnLight > contrast.ratioOnDark : false;
             const cssDeclaration = `--color-${color.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}: ${color.hex};`;
 
             return (
@@ -163,8 +165,8 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                     <span
                       className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm"
                       style={{
-                        backgroundColor: contrast?.bgHex === '#ffffff' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.85)',
-                        color: contrast?.bgHex === '#ffffff' ? '#ffffff' : '#000000',
+                        backgroundColor: swatchReadsOnLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.85)',
+                        color: swatchReadsOnLight ? '#ffffff' : '#000000',
                       }}
                     >
                       {color.paletteGroup}
@@ -182,8 +184,8 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                     <span
                       className="text-xs font-mono font-bold tracking-wider px-2 py-0.5 rounded shadow-sm"
                       style={{
-                        backgroundColor: contrast?.bgHex === '#ffffff' ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)',
-                        color: contrast?.bgHex === '#ffffff' ? '#ffffff' : '#000000',
+                        backgroundColor: swatchReadsOnLight ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)',
+                        color: swatchReadsOnLight ? '#ffffff' : '#000000',
                       }}
                     >
                       {renderedHex}

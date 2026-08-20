@@ -4,12 +4,39 @@
  * and ensures prompt injection patterns are treated purely as inert text.
  */
 
+const SCRIPT_BLOCK_PATTERN = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+const SCRIPT_TAG_PATTERN = /<\/?script\b[^>]*>/gi;
+const JAVASCRIPT_URI_PATTERN = /javascript:/gi;
+
 export function sanitizeText(text: string): string {
   if (!text) return '';
   return text
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/javascript:/gi, '')
+    .replace(SCRIPT_BLOCK_PATTERN, '')
+    .replace(JAVASCRIPT_URI_PATTERN, '')
     .trim();
+}
+
+/**
+ * Neutralizes the same constructs as sanitizeText, but guarantees the result
+ * has exactly as many lines as the input: a removed span is replaced by the
+ * newlines it contained and nothing is trimmed. Parsers depend on this so that
+ * every recorded line number is an index into the original document the user
+ * uploaded, which is what the Source view renders.
+ */
+export function sanitizeTextPreservingLines(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(SCRIPT_BLOCK_PATTERN, preservedNewlines)
+    .replace(SCRIPT_TAG_PATTERN, '')
+    .replace(JAVASCRIPT_URI_PATTERN, '');
+}
+
+function preservedNewlines(match: string): string {
+  let count = 0;
+  for (let i = 0; i < match.length; i++) {
+    if (match.charCodeAt(i) === 10) count++;
+  }
+  return '\n'.repeat(count);
 }
 
 /**

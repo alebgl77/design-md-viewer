@@ -26,13 +26,21 @@ export interface DesignSystemHealthReport {
   };
 }
 
+/** A legitimate 10-step ramp reports every pair but must not drive the score to the floor alone. */
+const CONSISTENCY_PENALTY_CAP = 15;
+const DUPLICATE_PAIR_PENALTY = 5;
+
 export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealthReport {
   const issues: AuditIssue[] = [];
   let passedChecks = 0;
 
+  // The same swatch is routinely declared under several names. Judging one token per hex keeps
+  // passedChecks honest and stops the pair loop from comparing a color against itself.
+  const palette = [...new Map(system.colors.map(c => [c.hex.toLowerCase(), c])).values()];
+
   // 1. Accessibility & Contrast Checks
   let failingContrastCount = 0;
-  system.colors.forEach((col) => {
+  palette.forEach((col) => {
     if (col.contrastWithBg && !col.contrastWithBg.aaCompliant && col.paletteGroup !== 'surface') {
       failingContrastCount++;
       issues.push({
@@ -40,7 +48,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
         type: 'warning',
         category: 'accessibility',
         title: `Low Contrast on Color "${col.name}" (${col.hex})`,
-        description: `Contrast ratio is ${col.contrastWithBg.ratio}:1, which is below the WCAG AA minimum of 4.5:1 for body text.`,
+        description: `Contrast ratio against the ${col.contrastWithBg.bgHex} background is ${col.contrastWithBg.ratio}:1, which is below the WCAG AA minimum of 4.5:1 for body text.`,
         recommendation: `Adjust the luminance of ${col.name} or use it only on high-contrast surfaces.`,
         impactScore: 4,
         itemRef: col.name,
@@ -52,10 +60,11 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
 
   // 2. Near-Duplicate Color Detection (Orphan colors)
   const nearDuplicatePairs: { col1: ColorToken; col2: ColorToken; distance: number }[] = [];
-  for (let i = 0; i < system.colors.length; i++) {
-    for (let j = i + 1; j < system.colors.length; j++) {
-      const c1 = system.colors[i];
-      const c2 = system.colors[j];
+  let consistencyPenaltySpent = 0;
+  for (let i = 0; i < palette.length; i++) {
+    for (let j = i + 1; j < palette.length; j++) {
+      const c1 = palette[i];
+      const c2 = palette[j];
       if (c1.hex.toLowerCase() === c2.hex.toLowerCase()) continue;
 
       const rgb1 = hexToRgb(c1.hex);
@@ -69,6 +78,10 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
       // Distance < 25 indicates visually almost indistinguishable colors
       if (distance > 0 && distance < 25) {
         nearDuplicatePairs.push({ col1: c1, col2: c2, distance });
+        // Pairs beyond the cap are still reported, they simply cost nothing more.
+        const impactScore = Math.min(DUPLICATE_PAIR_PENALTY, CONSISTENCY_PENALTY_CAP - consistencyPenaltySpent);
+        consistencyPenaltySpent += impactScore;
+
         issues.push({
           id: `dup-color-${c1.id}-${c2.id}`,
           type: 'warning',
@@ -76,7 +89,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
           title: `Near-Duplicate Colors: "${c1.name}" (${c1.hex}) & "${c2.name}" (${c2.hex})`,
           description: `These colors have only a ${Math.round(distance)} unit RGB delta and look nearly identical to users.`,
           recommendation: `Consolidate into a single shared token to avoid design debt and CSS bloat.`,
-          impactScore: 5,
+          impactScore,
           itemRef: `${c1.name} / ${c2.name}`,
         });
       }
@@ -132,12 +145,12 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
     : 100;
 
   // 4. Semantic Completeness
-  const semanticGroups = new Set(system.colors.map(c => c.paletteGroup));
+  const semanticGroups = new Set(palette.map(c => c.paletteGroup));
   const hasBrand = semanticGroups.has('brand');
   const hasNeutral = semanticGroups.has('neutral') || semanticGroups.has('surface');
   const hasSemantic = semanticGroups.has('semantic');
 
-  if (!hasBrand && system.colors.length > 0) {
+  if (!hasBrand && palette.length > 0) {
     issues.push({
       id: 'semantic-missing-brand',
       type: 'info',
@@ -151,7 +164,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
     passedChecks++;
   }
 
-  if (!hasSemantic && system.colors.length > 3) {
+  if (!hasSemantic && palette.length > 3) {
     issues.push({
       id: 'semantic-missing-functional',
       type: 'info',

@@ -1,6 +1,6 @@
 import { DesignSystem } from '../schema/designSystem';
 import { parseMarkdownStructure } from './markdownStructure';
-import { extractColors } from './colorExtractor';
+import { extractColors, resolveBackgroundHex, applyContrastAgainstBackground } from './colorExtractor';
 import { extractTypography } from './typographyExtractor';
 import { extractSpacing } from './spacingExtractor';
 import { extractRadii } from './radiusExtractor';
@@ -31,6 +31,11 @@ export function parseDesignDocument(
   const motion = extractMotion(structure);
   const accessibility = extractAccessibility(structure);
   const tokens = resolveTokensAndReferences(structure, tokenVars);
+
+  // 1b. Contrast only means something against the canvas the document actually declares, and that
+  // token is only known once every color has been collected — hence a second pass over the palette.
+  const backgroundHex = resolveBackgroundHex(colors);
+  applyContrastAgainstBackground(colors, backgroundHex);
 
   // 2. Extract overview
   const overview = extractOverview(structure, colors, typography, fileName);

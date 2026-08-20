@@ -2,6 +2,20 @@ import { TypographyToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 import { parsePxValue } from '../normalizers/unitNormalizer';
 
+// A table only counts as typography when a header carries a real type signal.
+// Bare "level" / "size" / "style" headers are shared with elevation, spacing and radius tables.
+const TYPE_HEADER_SIGNAL = /font-size|font|line-height|weight|typography|text/i;
+
+// Sections that own look-alike tables ("| Level | Shadow |", "| Token | Value |").
+const NON_TYPE_SECTION = /shadow|elevation|radius|corner|spacing/i;
+
+// A single whole length value — never a shadow, a font stack or a bare keyword.
+const LENGTH_VALUE = /^[\d.]+(?:px|rem|em|pt)$/i;
+
+function cleanCell(cell: string | undefined): string {
+  return cell ? cell.replace(/[`*]/g, '').trim() : '';
+}
+
 export function extractTypography(
   structure: ParsedMarkdownStructure
 ): TypographyToken[] {
@@ -20,19 +34,22 @@ export function extractTypography(
     provenance?: Provenance,
     confidence: 'explicit' | 'inferred' = 'explicit'
   ) {
+    const size = fontSize.trim();
+    const pxVal = parsePxValue(size);
+    if (!pxVal || !LENGTH_VALUE.test(size)) return;
+
     const cleanName = name.replace(/[-_]/g, ' ').trim();
-    const dedupeKey = `${cleanName.toLowerCase()}-${fontSize}`;
+    const dedupeKey = `${cleanName.toLowerCase()}-${size}`;
     if (seenKeys.has(dedupeKey)) return;
     seenKeys.add(dedupeKey);
 
-    const pxVal = parsePxValue(fontSize) || 16;
     const id = `typo-${typography.length + 1}-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
     typography.push({
       id,
       name: cleanName || `Type Scale ${typography.length + 1}`,
       fontFamily: fontFamily || 'Inter, sans-serif',
-      fontSize: fontSize || '16px',
+      fontSize: size,
       fontSizePx: pxVal,
       fontWeight: fontWeight || 400,
       lineHeight: lineHeight || '1.5',
@@ -68,9 +85,11 @@ export function extractTypography(
 
   // 2. Extract from Markdown Tables
   for (const table of structure.tables) {
+    if (table.headingPath.some(h => NON_TYPE_SECTION.test(h))) continue;
+
     const isTypoTable =
       table.headingPath.some(h => /typography|type|font|heading|text scale/i.test(h)) ||
-      table.headers.some(h => /font-size|size|level|style|line-height|weight|typography/i.test(h));
+      table.headers.some(h => TYPE_HEADER_SIGNAL.test(h));
 
     if (isTypoTable) {
       const nameIdx = table.headers.findIndex(h => /level|name|token|style|element|heading|type/i.test(h));
@@ -81,22 +100,27 @@ export function extractTypography(
 
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
-        const nameVal = nameIdx !== -1 ? row[nameIdx] : row[0];
-        const sizeVal = sizeIdx !== -1 ? row[sizeIdx] : (row.find(c => /[\d.]+(?:px|rem|pt|em)/i.test(c)) || '16px');
-        const weightVal = weightIdx !== -1 ? row[weightIdx] : '400';
-        const lhVal = lhIdx !== -1 ? row[lhIdx] : undefined;
-        const familyVal = familyIdx !== -1 ? row[familyIdx] : globalFontFamily;
+        const rawName = nameIdx !== -1 ? row[nameIdx] : row[0];
+        const nameVal = cleanCell(rawName);
+        // Without a size column, only a cell that is itself a length can stand in for one.
+        const sizeVal =
+          sizeIdx !== -1
+            ? cleanCell(row[sizeIdx])
+            : row.map(cleanCell).find(c => LENGTH_VALUE.test(c)) || '';
+        const weightVal = weightIdx !== -1 ? cleanCell(row[weightIdx]) : '400';
+        const lhVal = lhIdx !== -1 ? cleanCell(row[lhIdx]) : '';
+        const familyVal = familyIdx !== -1 ? cleanCell(row[familyIdx]) : globalFontFamily;
 
         if (nameVal && sizeVal) {
           addTypography(
-            nameVal.replace(/[`*]/g, '').trim(),
-            familyVal.replace(/[`*]/g, '').trim() || globalFontFamily,
-            sizeVal.replace(/[`*]/g, '').trim(),
-            weightVal.replace(/[`*]/g, '').trim() || 400,
-            lhVal ? lhVal.replace(/[`*]/g, '').trim() : undefined,
-            undefined,
-            undefined,
             nameVal,
+            familyVal || globalFontFamily,
+            sizeVal,
+            weightVal || 400,
+            lhVal || undefined,
+            undefined,
+            undefined,
+            rawName,
             {
               sectionTitle: table.headingPath[table.headingPath.length - 1],
               headingPath: table.headingPath,

@@ -1,5 +1,5 @@
 import { RawSection } from '../schema/designSystem';
-import { sanitizeText } from './safety';
+import { sanitizeTextPreservingLines } from './safety';
 
 export interface CodeBlock {
   language: string;
@@ -34,9 +34,12 @@ export interface ParsedMarkdownStructure {
 }
 
 export function parseMarkdownStructure(rawMarkdown: string): ParsedMarkdownStructure {
-  const cleanMarkdown = sanitizeText(rawMarkdown);
+  // Sanitization must not add or drop a single line: every lineNumber below is
+  // a 1-based index into the original document, which is what the Source view
+  // displays and what "jump to source" scrolls to.
+  const cleanMarkdown = sanitizeTextPreservingLines(rawMarkdown);
   const lines = cleanMarkdown.split(/\r?\n/);
-  
+
   const sections: RawSection[] = [];
   const codeBlocks: CodeBlock[] = [];
   const tables: MarkdownTable[] = [];

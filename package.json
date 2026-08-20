@@ -1,13 +1,37 @@
 {
   "name": "design-md-visual-explorer",
-  "private": true,
   "version": "1.0.0",
+  "description": "Client-side explorer that parses a design-system markdown file into browsable tokens, a health audit and code exports.",
+  "license": "MIT",
+  "author": "Alexandre Beguel",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_GITHUB_USERNAME/design-md-visual-explorer.git"
+  },
+  "homepage": "https://YOUR_GITHUB_USERNAME.github.io/design-md-visual-explorer/",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "markdown",
+    "markdown-parser",
+    "documentation",
+    "accessibility",
+    "wcag",
+    "tailwindcss",
+    "react",
+    "vite",
+    "typescript"
+  ],
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "clsx": "^2.1.1",

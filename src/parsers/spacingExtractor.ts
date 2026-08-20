@@ -2,6 +2,21 @@ import { SpacingToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 import { parsePxValue, formatRem } from '../normalizers/unitNormalizer';
 
+// Sections owned by another extractor. A length found under one of these headings is a type
+// size, a corner radius or a blur — never spacing — so the whole table/list is skipped.
+const NON_SPACING_SECTION = /type|font|typograph|radius|corner|shadow|elevation|breakpoint/i;
+
+// Positive evidence that a heading or a column header is about spacing.
+const SPACING_SECTION = /spacing|space|gap|padding|margin/i;
+
+// A spacing value is a bare CSS length and nothing else: prose, shorthand pairs and raw
+// declarations are rejected rather than carried into the exports.
+const SPACING_VALUE = /^(?:0|(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em|%))$/i;
+
+function isNonSpacingSection(headingPath: string[]): boolean {
+  return headingPath.some(h => NON_SPACING_SECTION.test(h));
+}
+
 export function extractSpacing(
   structure: ParsedMarkdownStructure
 ): SpacingToken[] {
@@ -14,7 +29,10 @@ export function extractSpacing(
     provenance: Provenance,
     role?: string
   ) {
-    const px = parsePxValue(value);
+    const cleanValue = value.replace(/[`*]/g, '').trim();
+    if (!SPACING_VALUE.test(cleanValue)) return;
+
+    const px = parsePxValue(cleanValue);
     const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
     const dedupeKey = `${cleanName.toLowerCase()}-${px}`;
     if (seenValues.has(dedupeKey)) return;
@@ -25,7 +43,7 @@ export function extractSpacing(
     spacing.push({
       id,
       name: cleanName || `Space ${spacing.length + 1}`,
-      value: value.trim(),
+      value: cleanValue,
       pxValue: px,
       remValue: formatRem(px),
       role: role || cleanName,
@@ -35,14 +53,16 @@ export function extractSpacing(
   }
 
   // 1. Code blocks (CSS vars)
+  // The `--space-*` prefix is itself the evidence here, so the section veto does not apply;
+  // the value is what needs pinning down.
   for (const block of structure.codeBlocks) {
     const lines = block.code.split('\n');
     lines.forEach((line, idx) => {
       const lineNum = block.startLine + idx + 1;
-      const spaceVarMatch = line.match(/^\s*(--(?:spacing|space|gap|pad|margin)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
+      const spaceVarMatch = line.match(/^\s*(--(?:spacing|space|gap|padding|pad|margin)-[a-zA-Z0-9_-]+)\s*:\s*([^;]+);/i);
       if (spaceVarMatch) {
         addSpacing(
-          spaceVarMatch[1].replace(/^--(?:spacing-|space-|gap-|pad-|margin-)/, ''),
+          spaceVarMatch[1].replace(/^--(?:spacing-|space-|gap-|padding-|pad-|margin-)/, ''),
           spaceVarMatch[2],
           {
             sectionTitle: block.headingPath[block.headingPath.length - 1],
@@ -57,9 +77,11 @@ export function extractSpacing(
 
   // 2. Tables
   for (const table of structure.tables) {
+    if (isNonSpacingSection(table.headingPath)) continue;
+
     const isSpacingTable =
-      table.headingPath.some(h => /spacing|space|grid|gap|padding|margin|scale/i.test(h)) ||
-      table.headers.some(h => /space|spacing|gap|padding|size|rem|px/i.test(h));
+      table.headingPath.some(h => SPACING_SECTION.test(h)) ||
+      table.headers.some(h => SPACING_SECTION.test(h));
 
     if (isSpacingTable) {
       const nameIdx = table.headers.findIndex(h => /token|name|scale|level|key/i.test(h));
@@ -72,10 +94,10 @@ export function extractSpacing(
         const valVal = valIdx !== -1 ? row[valIdx] : (row.find(c => /[\d.]+(?:px|rem|em)/i.test(c)) || row[1]);
         const roleVal = roleIdx !== -1 ? row[roleIdx] : undefined;
 
-        if (nameVal && valVal && /[\d.]+(?:px|rem|em|\d+)/i.test(valVal)) {
+        if (nameVal && valVal) {
           addSpacing(
             nameVal.replace(/[`*]/g, '').trim(),
-            valVal.replace(/[`*]/g, '').trim(),
+            valVal,
             {
               sectionTitle: table.headingPath[table.headingPath.length - 1],
               headingPath: table.headingPath,
@@ -91,7 +113,9 @@ export function extractSpacing(
 
   // 3. Lists
   for (const item of structure.listItems) {
-    const isSpacingSection = item.headingPath.some(h => /spacing|space|gap|padding|margin|dimension/i.test(h));
+    if (isNonSpacingSection(item.headingPath)) continue;
+
+    const isSpacingSection = item.headingPath.some(h => SPACING_SECTION.test(h));
     if (isSpacingSection) {
       const kvMatch = item.text.match(/^[*_`]*([a-zA-Z0-9_\-\s]+)[*_`]*\s*[:=]\s*[`*]*([\d.]+(?:px|rem|em))[`*]*(?:\s*[-—(]\s*(.*?)\)?)?$/i);
       if (kvMatch) {

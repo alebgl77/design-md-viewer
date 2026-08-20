@@ -1,14 +1,38 @@
-import { ColorToken, Provenance } from '../schema/designSystem';
+import { ColorContrastReport, ColorToken, Provenance } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
-import { normalizeColorValue, classifyColorRole, getContrastRatio } from '../normalizers/colorNormalizer';
+import { normalizeColorValue, classifyColorRole, hexToRgb, getLuminance } from '../normalizers/colorNormalizer';
 import { isSafeCssValue } from './safety';
+
+const MAX_NAME_LENGTH = 40;
+const MAX_ALIASES = 6;
+const LIGHT_FALLBACK_BG = '#ffffff';
+const DARK_FALLBACK_BG = '#0f172a';
+
+/** A name lifted from a CSS declaration ("background: #fff") names the property, not the swatch. */
+const CSS_PROPERTY_NAMES = new Set([
+  'color',
+  'background',
+  'background-color',
+  'border',
+  'border-color',
+  'outline',
+  'outline-color',
+  'fill',
+  'stroke',
+  'caret-color',
+  'text-decoration-color',
+]);
+
+const BACKGROUND_VARIABLE = /^(?:--|\$)(?:color[-_])?(?:bg|background|canvas|surface[-_]base)$/i;
+const BACKGROUND_NAME = /^bg$|background|canvas|surface base/i;
 
 export function extractColors(
   structure: ParsedMarkdownStructure
 ): { colors: ColorToken[]; tokenVars: Record<string, string> } {
   const colors: ColorToken[] = [];
   const tokenVars: Record<string, string> = {};
-  const seenKeys = new Set<string>();
+  const indexByHex = new Map<string, number>();
+  const nameQualityByIndex: number[] = [];
 
   function addColor(
     name: string,
@@ -22,42 +46,66 @@ export function extractColors(
     const normalized = normalizeColorValue(rawValue);
     if (!normalized.isValid) return;
 
-    const cleanName = name.replace(/^(--|\$)/, '').replace(/[-_]/g, ' ').trim();
-    const dedupeKey = `${cleanName.toLowerCase()}-${normalized.hex.toLowerCase()}`;
-    
-    if (seenKeys.has(dedupeKey)) return;
-    seenKeys.add(dedupeKey);
+    const declaredVariable = /^(--|\$)/.test(name.trim()) ? name.trim() : undefined;
+    // Custom properties feed the reference resolver even when the swatch itself is a duplicate
+    // of one already collected, so they are registered before the dedupe check.
+    if (declaredVariable) {
+      tokenVars[declaredVariable] = normalized.hex;
+    }
 
-    const { paletteGroup, detectedRole } = classifyColorRole(cleanName, roleHint);
-    const contrastLight = getContrastRatio(normalized.hex, '#ffffff');
-    const contrastDark = getContrastRatio(normalized.hex, '#0f172a');
-    const chosenContrast = contrastLight > contrastDark ? contrastLight : contrastDark;
-    const bgUsed = contrastLight > contrastDark ? '#ffffff' : '#0f172a';
+    const cleanName = cleanColorName(name);
+    const quality = scoreColorName(name, cleanName);
+    const existingIndex = indexByHex.get(normalized.hex.toLowerCase());
 
-    const id = `col-${colors.length + 1}-${cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    // One swatch per hex: the same color is routinely declared under a token name, a palette
+    // row and a raw CSS property, and counting it three times fabricates duplicates downstream.
+    if (existingIndex !== undefined) {
+      const existing = colors[existingIndex];
+      const takesOverIdentity = quality > nameQualityByIndex[existingIndex];
+
+      if (takesOverIdentity) {
+        const previousName = existing.name;
+        const { paletteGroup, detectedRole } = classifyColorRole(cleanName, roleHint);
+        existing.id = buildColorId(existingIndex, cleanName);
+        existing.name = cleanName;
+        existing.rawValue = rawValue;
+        existing.role = detectedRole;
+        existing.paletteGroup = paletteGroup;
+        existing.provenance = provenance;
+        existing.confidence = confidence;
+        nameQualityByIndex[existingIndex] = quality;
+        rememberAlias(existing, previousName);
+      } else {
+        rememberAlias(existing, cleanName);
+      }
+
+      if (declaredVariable && (takesOverIdentity || !existing.cssVariable)) {
+        existing.cssVariable = declaredVariable;
+      }
+      return;
+    }
+
+    const index = colors.length;
+    const displayName = cleanName || `Color ${index + 1}`;
+    const { paletteGroup, detectedRole } = classifyColorRole(displayName, roleHint);
+
+    indexByHex.set(normalized.hex.toLowerCase(), index);
+    nameQualityByIndex[index] = quality;
 
     colors.push({
-      id,
-      name: cleanName || `Color ${colors.length + 1}`,
+      id: buildColorId(index, displayName),
+      name: displayName,
+      cssVariable: declaredVariable,
       rawValue,
       hex: normalized.hex,
       rgb: normalized.rgb,
       hsl: normalized.hsl,
       role: detectedRole,
       paletteGroup,
-      contrastWithBg: {
-        ratio: chosenContrast,
-        aaCompliant: chosenContrast >= 4.5,
-        aaaCompliant: chosenContrast >= 7.0,
-        bgHex: bgUsed,
-      },
+      contrastWithBg: buildContrastReport(normalized.hex),
       provenance,
       confidence,
     });
-
-    if (name.startsWith('--') || name.startsWith('$')) {
-      tokenVars[name] = normalized.hex;
-    }
   }
 
   // 1. Extract from Code Blocks (CSS, SCSS, JSON, YAML)
@@ -180,9 +228,9 @@ export function extractColors(
       const inlineHexMatch = item.text.match(/(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgba?\([^)]+\)|hsla?\([^)]+\))/i);
       if (inlineHexMatch) {
         const val = inlineHexMatch[1];
-        const namePart = item.text.replace(val, '').replace(/[-—:()]/g, ' ').trim();
+        const namePart = deriveInlineName(item.text, val);
         addColor(
-          namePart || `Color ${colors.length + 1}`,
+          namePart,
           val,
           {
             sectionTitle: item.headingPath[item.headingPath.length - 1],
@@ -197,6 +245,128 @@ export function extractColors(
   });
 
   return { colors, tokenVars };
+}
+
+/**
+ * The background a document actually declares, so contrast can be measured against the canvas
+ * the tokens are really painted on. Returns undefined when the document declares none.
+ */
+export function resolveBackgroundHex(colors: ColorToken[]): string | undefined {
+  const declared = colors.find(color => color.cssVariable && BACKGROUND_VARIABLE.test(color.cssVariable));
+  if (declared) return declared.hex;
+
+  const named = colors.find(color => color.role === 'Background' || BACKGROUND_NAME.test(color.name));
+  return named?.hex;
+}
+
+/** Second pass: re-measure every swatch against the resolved background, in place. */
+export function applyContrastAgainstBackground(colors: ColorToken[], backgroundHex?: string): void {
+  for (const color of colors) {
+    color.contrastWithBg = buildContrastReport(color.hex, backgroundHex);
+  }
+}
+
+function buildContrastReport(hex: string, backgroundHex?: string): ColorContrastReport {
+  const ratioOnLight = contrastRatio(hex, LIGHT_FALLBACK_BG);
+  const ratioOnDark = contrastRatio(hex, DARK_FALLBACK_BG);
+
+  // With no declared canvas there is nothing honest to judge against, so we keep the historical
+  // behaviour of reporting the friendlier of the two default canvases.
+  const bgHex = backgroundHex ?? (ratioOnLight > ratioOnDark ? LIGHT_FALLBACK_BG : DARK_FALLBACK_BG);
+  const ratio = backgroundHex ? contrastRatio(hex, backgroundHex) : Math.max(ratioOnLight, ratioOnDark);
+
+  return {
+    ratio: floorTo2Decimals(ratio),
+    ratioOnLight: floorTo2Decimals(ratioOnLight),
+    ratioOnDark: floorTo2Decimals(ratioOnDark),
+    aaCompliant: ratio >= 4.5,
+    aaaCompliant: ratio >= 7.0,
+    bgHex,
+  };
+}
+
+/**
+ * Unrounded WCAG ratio: `getContrastRatio` rounds to two decimals, which would let a 4.497
+ * pair round up into an AA pass. Compliance is decided here, rounding happens for display only.
+ */
+function contrastRatio(hexA: string, hexB: string): number {
+  const a = hexToRgb(hexA);
+  const b = hexToRgb(hexB);
+  const lumA = getLuminance(a.r, a.g, a.b);
+  const lumB = getLuminance(b.r, b.g, b.b);
+  return (Math.max(lumA, lumB) + 0.05) / (Math.min(lumA, lumB) + 0.05);
+}
+
+/** Rounded down so a displayed ratio never overstates the measured contrast. */
+function floorTo2Decimals(value: number): number {
+  return Math.floor(value * 100) / 100;
+}
+
+/**
+ * Names end up as CSS custom property identifiers on export, so a name is an identifier and
+ * never a sentence: markdown punctuation goes, whitespace collapses, length is bounded.
+ */
+function cleanColorName(rawName: string): string {
+  const withoutMarkup = rawName.replace(/[`*_~·]+/g, ' ').trim();
+  const isCustomProperty = /^(--|\$)/.test(withoutMarkup);
+  let identifier = withoutMarkup.replace(/^(?:--|\$)/, '').replace(/[-]+/g, ' ');
+
+  if (isCustomProperty) {
+    // "--color-bg" names the swatch "bg": the leading segment is the namespace every exporter
+    // re-adds, and keeping it would emit "--color-color-bg".
+    const withoutNamespace = identifier.replace(/^colou?rs?\s+/i, '');
+    if (withoutNamespace) identifier = withoutNamespace;
+  }
+
+  return identifier
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, MAX_NAME_LENGTH)
+    .replace(/[\s.,:;|(){}[\]/-]+$/, '')
+    .trim();
+}
+
+/**
+ * How trustworthy a name is as the identity of a swatch. An authored custom property beats a
+ * prose label, which beats the CSS property a value happened to be assigned to.
+ */
+function scoreColorName(rawName: string, cleanedName: string): number {
+  if (!cleanedName) return 0;
+
+  const trimmed = rawName.trim();
+  if (/^(--|\$)/.test(trimmed)) {
+    // Positional tokens (--palette-7) name a slot rather than a role.
+    return /\d$/.test(cleanedName) ? 3 : 4;
+  }
+  if (CSS_PROPERTY_NAMES.has(trimmed.toLowerCase())) return 1;
+  return 2;
+}
+
+/** Preference chain for a bullet: the declared custom property, then the bolded label, then the prose. */
+function deriveInlineName(text: string, value: string): string {
+  const declaredVariable = text.match(/(--[a-zA-Z][\w-]*)/);
+  if (declaredVariable) return declaredVariable[1];
+
+  const boldLabel = text.match(/\*\*([^*]+)\*\*/);
+  if (boldLabel) return boldLabel[1];
+
+  const valueIndex = text.indexOf(value);
+  const before = text.slice(0, valueIndex).trim();
+  return before || text.slice(valueIndex + value.length).trim();
+}
+
+function rememberAlias(token: ColorToken, candidate: string): void {
+  if (!candidate || candidate.toLowerCase() === token.name.toLowerCase()) return;
+
+  const aliases = token.aliases ?? [];
+  if (aliases.length >= MAX_ALIASES) return;
+  if (aliases.some(alias => alias.toLowerCase() === candidate.toLowerCase())) return;
+
+  token.aliases = [...aliases, candidate];
+}
+
+function buildColorId(index: number, name: string): string {
+  return `col-${index + 1}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 }
 
 function extractFromJson(

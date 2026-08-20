@@ -18,9 +18,21 @@ export const ProvenanceSchema = z.object({
   rawSourceSnippet: z.string(),
 });
 
+export interface ColorContrastReport {
+  /** Ratio against `bgHex`, rounded down for display; compliance is decided before rounding. */
+  ratio: number;
+  ratioOnLight: number;
+  ratioOnDark: number;
+  aaCompliant: boolean;
+  aaaCompliant: boolean;
+  /** The background the ratio was measured against: the document's own, or a default canvas. */
+  bgHex: string;
+}
+
 export interface ColorToken {
   id: string;
   name: string;
+  cssVariable?: string;
   rawValue: string;
   hex: string;
   rgb: string;
@@ -28,12 +40,7 @@ export interface ColorToken {
   role?: string;
   paletteGroup: 'brand' | 'neutral' | 'semantic' | 'accent' | 'surface' | 'other';
   aliases?: string[];
-  contrastWithBg?: {
-    ratio: number;
-    aaCompliant: boolean;
-    aaaCompliant: boolean;
-    bgHex: string;
-  };
+  contrastWithBg?: ColorContrastReport;
   provenance: Provenance;
   confidence: ExtractionConfidence;
 }
