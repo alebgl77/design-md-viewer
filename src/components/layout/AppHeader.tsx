@@ -1,6 +1,7 @@
 import React from 'react';
-import { Sparkles, Search, Download, RefreshCw, FileText, Bot, CheckCircle2 } from 'lucide-react';
+import { Search, Download, RefreshCw, FileText, Bot, CheckCircle2 } from 'lucide-react';
 import { DesignSystem } from '../../schema/designSystem';
+import { AnimatedLogo } from '../common/AnimatedLogo';
 import { Badge } from '../common/Badge';
 import { ThemeToggle } from '../common/ThemeToggle';
 
@@ -24,8 +25,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       {/* Left: Branding & Current File */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2 font-bold text-content-primary text-sm sm:text-base shrink-0 font-heading">
-          <div className="w-8 h-8 rounded-md bg-accent flex items-center justify-center text-accent-contrast font-extrabold shadow-deep">
-            <Sparkles className="w-4 h-4" aria-hidden="true" />
+          {/* A tinted plate, not a solid accent fill: the mark draws itself in
+              the accent, so the tile behind it has to stay a wash. 22px inside
+              a 32px tile leaves the hash a hair of breathing room while still
+              reading as a logo rather than an icon. */}
+          <div className="w-8 h-8 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center shadow-deep">
+            <AnimatedLogo size={22} />
           </div>
           <span className="hidden md:inline font-extrabold tracking-tight">
             Design<span className="text-accent">.md</span>

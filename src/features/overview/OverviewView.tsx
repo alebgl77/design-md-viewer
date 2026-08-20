@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { clsx } from 'clsx';
 import {
   Sparkles,
   Palette,
@@ -10,9 +11,12 @@ import {
   ArrowRight,
   Quote,
   CheckCircle2,
+  Radar,
 } from 'lucide-react';
 import { DesignSystem } from '../../schema/designSystem';
 import { Badge } from '../../components/common/Badge';
+import { RadarChart } from '../../components/common/RadarChart';
+import { buildSystemProfile, describeProfile } from './systemProfile';
 
 interface OverviewViewProps {
   system: DesignSystem;
@@ -28,6 +32,12 @@ interface MetricEntry {
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }) => {
   const { overview } = system;
+
+  // The profile runs the health audit, which is O(n²) over the palette. Once per system, not
+  // once per render.
+  const profile = useMemo(() => buildSystemProfile(system), [system]);
+  // Below a triangle there is no shape to read, so the readings are listed instead of plotted.
+  const canPlotProfile = profile.axes.length >= 3;
 
   const metrics: MetricEntry[] = [
     { category: 'Colors', count: system.colors.length, label: 'Color Swatches', icon: Palette },
@@ -131,6 +141,99 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
             </button>
           ))}
       </div>
+
+      {/* Design System Profile — the counts above say how much there is, this says how well it
+          holds together. One entity, up to six axes, one unit: a percentage where higher is better. */}
+      {profile.axes.length > 0 && (
+        <section className="p-6 rounded-lg bg-surface-raised border border-line">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-content-secondary font-heading">
+              <Radar className="w-4 h-4 text-accent" />
+              <span>Design System Profile</span>
+            </h2>
+            {overview.categoriesDetected.includes('Audit') && (
+              <button
+                type="button"
+                onClick={() => onNavigate('Audit')}
+                className="text-xs text-accent hover:text-accent-hover font-bold flex items-center gap-1 rounded-sm"
+              >
+                Open the full audit <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <p className="text-xs text-content-muted leading-relaxed max-w-2xl mb-5">
+            How completely this document specifies itself, measured only against what was parsed out of it.
+            Every axis is a percentage and higher is better on all of them, which is what makes them readable
+            on one shape.
+          </p>
+
+          <div className={clsx('grid gap-6 items-center', canPlotProfile && 'lg:grid-cols-2')}>
+            {canPlotProfile && (
+              /* Hidden below `sm`: at phone widths the polygon and its labels stop being legible,
+                 and the table below carries the same numbers. */
+              <RadarChart
+                axes={profile.axes}
+                ariaLabel={describeProfile(profile, overview.name || 'this design system')}
+                className="hidden sm:block w-full max-w-[420px] mx-auto"
+              />
+            )}
+
+            {/* The numbers as text, not only as geometry. */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <caption className="sr-only">
+                  Design system profile: every dimension as a percentage, higher is better, with the counts it
+                  was derived from.
+                </caption>
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-content-muted">
+                    <th scope="col" className="py-2 pr-3 font-bold">
+                      Dimension
+                    </th>
+                    <th scope="col" className="py-2 pr-3 font-bold text-right">
+                      Score
+                    </th>
+                    <th scope="col" className="py-2 font-bold">
+                      Measured from
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.axes.map(axis => (
+                    <tr key={axis.id} className="border-t border-line-subtle align-top">
+                      <th scope="row" className="py-2 pr-3 font-semibold text-content-primary">
+                        {axis.label}
+                      </th>
+                      <td className="py-2 pr-3 text-right font-mono tabular-nums text-content-primary">
+                        {axis.percent}%
+                      </td>
+                      <td className="py-2 text-content-secondary">{axis.detail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {!canPlotProfile && (
+            <p className="mt-4 text-[11px] text-content-muted">
+              A radar needs at least three comparable dimensions. This document supports{' '}
+              <span className="font-mono tabular-nums">{profile.axes.length}</span>, so the readings are
+              listed rather than plotted.
+            </p>
+          )}
+
+          {profile.omittedLabels.length > 0 && (
+            <p className="mt-4 text-[11px] text-content-muted">
+              Not measured: {profile.omittedLabels.join(', ')}. The parse holds nothing to score{' '}
+              {profile.omittedLabels.length === 1 ? 'it' : 'them'} against — either the document does not
+              specify {profile.omittedLabels.length === 1 ? 'it' : 'them'} or the extractor did not record{' '}
+              {profile.omittedLabels.length === 1 ? 'it' : 'them'} — and a missing measurement is not a zero.
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Typography Specimen Preview */}
       {overview.typographySample && (

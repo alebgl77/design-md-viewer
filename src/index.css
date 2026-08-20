@@ -211,6 +211,88 @@ h3,
 }
 
 /* ===========================================================================
+   APP MARK
+
+   The header logo (src/components/common/AnimatedLogo.tsx) is a hash whose four
+   carved-out cells are colour swatches. Those swatches cascade from unresolved
+   to resolved on a slow loop — a written document becoming a settled palette,
+   values landing in reading order as a parser reaches them — while the hash
+   strokes stay put, because they are the structure and the swatches are the
+   data.
+
+   Two constraints shape the implementation:
+
+     1. Only `opacity` and `transform` are animated. The mark sits in a sticky
+        header on every screen, so animating geometry (x/y/width/height) or
+        `fill` would force layout or paint on every frame.
+     2. The animation is on a wrapping <g>, not on the <rect>. Each cell is
+        authored with its own ramp opacity (1 / .62 / .38 / .22); group and
+        element opacity multiply, so a single keyframe set drives all four
+        without flattening the ramp — and the resting state of every cell is
+        simply the value it is authored with.
+   =========================================================================== */
+
+.logo-mark__swatch {
+  /* fill-box, so each cell scales about its own centre rather than the origin
+     of the 64x64 viewBox. */
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: logo-mark-resolve 4.4s ease-in-out infinite;
+}
+
+/* The stagger is delay-only: one keyframe set, four offsets, in reading order,
+   0.22s apart — which puts the whole cascade inside the first ~1.5s of the
+   cycle and leaves the rest as hold.
+
+   The offsets are NEGATIVE (one full cycle minus the intended stagger) rather
+   than the obvious positive 0.22 / 0.44 / 0.66. A positive delay does nothing
+   at all until it elapses, so on first paint the three later cells would sit at
+   full opacity, then drop before resolving — the mark would come apart before
+   it came together. Seeking backwards instead starts every cell already inside
+   the previous cycle's release, so the very first load reads the same as every
+   loop after it: dim, then resolving in sequence. */
+.logo-mark__swatch:nth-child(2) {
+  animation-delay: -4.18s; /* -(4.4 - 0.22) */
+}
+
+.logo-mark__swatch:nth-child(3) {
+  animation-delay: -3.96s; /* -(4.4 - 0.44) */
+}
+
+.logo-mark__swatch:nth-child(4) {
+  animation-delay: -3.74s; /* -(4.4 - 0.66) */
+}
+
+@keyframes logo-mark-resolve {
+  /* Lands quickly and decelerates hard — a value snapping into place. */
+  0% {
+    opacity: 0.2;
+    transform: scale(0.88);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Resolved, and held for half the cycle. */
+  18% {
+    opacity: 1;
+    transform: scale(1);
+    animation-timing-function: linear;
+  }
+
+  /* The release is slower than the landing, so the loop reads as a breath
+     rather than a blink. */
+  68% {
+    opacity: 1;
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+
+  100% {
+    opacity: 0.2;
+    transform: scale(0.88);
+  }
+}
+
+/* ===========================================================================
    MOTION
    Respect the OS-level request to cut animation. Near-zero rather than zero so
    transition/animation end events still fire and no state machine stalls.
@@ -224,5 +306,16 @@ h3,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The mark, stated outright rather than left to the blanket rule above. That
+     rule only collapses the duration — the delays survive it — and a
+     near-zero-duration animation is exactly the shape that parks an element on
+     one keyframe forever: here, a swatch stuck dim and shrunken. Removing the
+     animation instead means no keyframe applies at all, so every cell falls
+     back to the opacity it is authored with at an untransformed scale. That
+     resting state is the complete static logo, never a frozen mid-cascade. */
+  .logo-mark__swatch {
+    animation: none !important;
   }
 }
