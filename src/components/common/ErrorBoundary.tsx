@@ -78,7 +78,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-content-secondary">
               Your document was read, but one of the values it contains could not be displayed. The failure is
-              contained here — the file never left your browser and the rest of the specification is still
+              contained here - the file never left your browser and the rest of the specification is still
               loaded.
             </p>
 
@@ -92,7 +92,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </div>
 
             <ul className="mt-4 space-y-1.5 text-xs leading-relaxed text-content-muted">
-              <li>Pick another category in the sidebar — the rest of the document is unaffected.</li>
+              <li>Pick another category in the sidebar - the rest of the document is unaffected.</li>
               <li>Reload this view if the failure looked transient.</li>
               <li>Load a different file if this document is malformed.</li>
             </ul>

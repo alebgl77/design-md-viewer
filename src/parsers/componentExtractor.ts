@@ -64,7 +64,7 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
    *
    * A section's `content` stops at the next heading of any level, so "### Button" ends the moment
    * "#### States" begins and a component was only ever handed its opening paragraph. Its variants,
-   * sizes and states — the substance — sat in sibling sections the extractor never looked at, and
+   * sizes and states - the substance - sat in sibling sections the extractor never looked at, and
    * the fabricated defaults below hid that from everyone.
    *
    * The subtree is the section plus every following one that is nested deeper, stopping at the next

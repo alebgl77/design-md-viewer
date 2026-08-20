@@ -17,7 +17,7 @@ const CUSTOM_ENDPOINT_STORAGE = 'design_md_custom_ai';
  * secret does not linger.
  *
  * Storage access is guarded because it throws outright when cookies are blocked
- * or the app runs in a sandboxed frame — a settings panel must not white-screen
+ * or the app runs in a sandboxed frame - a settings panel must not white-screen
  * over that.
  */
 function readStoredApiKey(): string {

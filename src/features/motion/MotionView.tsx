@@ -66,7 +66,7 @@ export const MotionView: React.FC<MotionViewProps> = ({ motion, onNavigateToSour
 
                 {/* Animated Object.
                     The duration and easing below are PARSED document values, so they stay
-                    inline styles — the preview has to move the way the spec says it moves. */}
+                    inline styles - the preview has to move the way the spec says it moves. */}
                 <div className="w-full relative h-10 flex items-center">
                   <div
                     className="w-10 h-10 rounded-md bg-accent text-accent-contrast flex items-center justify-center shadow-deep"

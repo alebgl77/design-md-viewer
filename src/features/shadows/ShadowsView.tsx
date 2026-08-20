@@ -14,7 +14,7 @@ interface ShadowsViewProps {
 /**
  * The elevation preview is a STAGE for parsed data, not app chrome. The whole
  * point of the Dark/Light switch is to judge one parsed box-shadow against two
- * FIXED grounds, whichever theme the product itself is wearing — so these stay
+ * FIXED grounds, whichever theme the product itself is wearing - so these stay
  * literal values in inline styles, exactly like the swatches in ColorView.
  * Driving them from the theme tokens would make both canvases identical and
  * delete the feature.
@@ -112,7 +112,7 @@ export const ShadowsView: React.FC<ShadowsViewProps> = ({ shadows, onNavigateToS
                 />
               </div>
 
-              {/* Real Shadow Canvas Preview — fixed grounds, see PREVIEW_CANVAS */}
+              {/* Real Shadow Canvas Preview - fixed grounds, see PREVIEW_CANVAS */}
               <div
                 className="h-40 w-full rounded-md flex items-center justify-center p-6 transition-colors border"
                 style={{ backgroundColor: canvas.canvas, borderColor: canvas.canvasBorder }}

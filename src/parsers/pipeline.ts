@@ -30,7 +30,7 @@ export function parseDesignDocument(rawMarkdown: string, fileName = 'design.md')
   const tokens = resolveTokensAndReferences(structure, tokenVars);
 
   // 1b. Contrast only means something against the canvas the document actually declares, and that
-  // token is only known once every color has been collected — hence a second pass over the palette.
+  // token is only known once every color has been collected - hence a second pass over the palette.
   const backgroundHex = resolveBackgroundHex(colors);
   applyContrastAgainstBackground(colors, backgroundHex);
 

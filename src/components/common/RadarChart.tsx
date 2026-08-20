@@ -5,7 +5,7 @@ export interface RadarAxisDatum {
   id: string;
   /** Axis name, drawn next to the spoke. */
   label: string;
-  /** 0–100. Every axis must share this unit and this direction of good. */
+  /** 0 - 100. Every axis must share this unit and this direction of good. */
   percent: number;
   /** The raw counts behind the percentage, surfaced in the tooltip. */
   detail: string;
@@ -53,7 +53,7 @@ function polygonPoints(total: number, radius: number): string {
 }
 
 /**
- * A single-series radar chart drawn by hand — no charting dependency, no inline script.
+ * A single-series radar chart drawn by hand - no charting dependency, no inline script.
  *
  * Two layers sit on top of each other: the SVG, which is `role="img"` and therefore presentational
  * all the way down, and an HTML layer of real buttons pinned to each vertex. That split is what

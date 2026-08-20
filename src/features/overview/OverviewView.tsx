@@ -142,7 +142,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
           ))}
       </div>
 
-      {/* Design System Profile — the counts above say how much there is, this says how well it
+      {/* Design System Profile - the counts above say how much there is, this says how well it
           holds together. One entity, up to six axes, one unit: a percentage where higher is better. */}
       {profile.axes.length > 0 && (
         <section className="p-6 rounded-lg bg-surface-raised border border-line">
@@ -227,9 +227,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ system, onNavigate }
           {profile.omittedLabels.length > 0 && (
             <p className="mt-4 text-[11px] text-content-muted">
               Not measured: {profile.omittedLabels.join(', ')}. The parse holds nothing to score{' '}
-              {profile.omittedLabels.length === 1 ? 'it' : 'them'} against — either the document does not
+              {profile.omittedLabels.length === 1 ? 'it' : 'them'} against - either the document does not
               specify {profile.omittedLabels.length === 1 ? 'it' : 'them'} or the extractor did not record{' '}
-              {profile.omittedLabels.length === 1 ? 'it' : 'them'} — and a missing measurement is not a zero.
+              {profile.omittedLabels.length === 1 ? 'it' : 'them'} - and a missing measurement is not a zero.
             </p>
           )}
         </section>

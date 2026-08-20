@@ -114,7 +114,7 @@ function buildTokenMap(
 /**
  * Serializes a token map as a JS object literal. Every user-controlled string
  * goes through JSON.stringify, which quotes keys and escapes quotes, backslashes
- * and newlines — so no token can contribute syntax to the generated module.
+ * and newlines - so no token can contribute syntax to the generated module.
  */
 function serializeTokenMap(map: Record<string, string>, indent: string, emptyNote: string): string {
   if (Object.keys(map).length === 0) {

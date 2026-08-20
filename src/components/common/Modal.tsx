@@ -32,7 +32,7 @@ function getFocusableElements(root: HTMLElement): HTMLElement[] {
  * Scroll lock, reference counted.
  *
  * A raw `overflow = ''` on close would unlock the page while a second dialog is
- * still open, and a leaked lock bricks scrolling for the rest of the session —
+ * still open, and a leaked lock bricks scrolling for the rest of the session -
  * so the original inline value is captured once and restored exactly once.
  */
 let scrollLockCount = 0;
@@ -82,7 +82,7 @@ interface ModalProps {
   labelledBy: string;
   size?: ModalSize;
   align?: ModalAlign;
-  /** Extra panel classes — height caps, mostly. */
+  /** Extra panel classes - height caps, mostly. */
   className?: string;
   children: React.ReactNode;
 }

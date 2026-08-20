@@ -50,8 +50,8 @@ never fail. `#0e3a2a` at 1.52:1 is a real finding about a real palette.
 <img src="docs/screenshots/source-dark.png" alt="The source inspector: the document outline with line numbers on the left, the raw markdown on the right.">
 
 Provenance is a required field in the schema, so an extractor _cannot_ emit a value it is unable to
-point at. When the parser gets something wrong — and on a document it has never seen, it sometimes
-will — you can see why in one click instead of trusting it.
+point at. When the parser gets something wrong - and on a document it has never seen, it sometimes
+will - you can see why in one click instead of trusting it.
 
 ### The palette, with the parts that fail marked as failing
 
@@ -94,9 +94,9 @@ Thirty-two lines in. This comes out:
 
 | Token   | Value     | Contrast on the declared surface | Source        |
 | ------- | --------- | -------------------------------- | ------------- |
-| Primary | `#2563eb` | 5.16:1 — passes AA               | `orbit.md:9`  |
-| Surface | `#f8fafc` | 17.06:1 — passes AA              | `orbit.md:10` |
-| Danger  | `#dc2626` | 4.82:1 — passes AA               | `orbit.md:11` |
+| Primary | `#2563eb` | 5.16:1 - passes AA               | `orbit.md:9`  |
+| Surface | `#f8fafc` | 17.06:1 - passes AA              | `orbit.md:10` |
+| Danger  | `#dc2626` | 4.82:1 - passes AA               | `orbit.md:11` |
 
 | Token   | Size | Weight | Line height | Source        |
 | ------- | ---- | ------ | ----------- | ------------- |
@@ -108,7 +108,7 @@ Thirty-two lines in. This comes out:
 | fast  | 150ms    | `ease-out`                     | `orbit.md:30` |
 | base  | 250ms    | `cubic-bezier(0.4, 0, 0.2, 1)` | `orbit.md:31` |
 
-Categories detected: **Colors, Typography, Spacing, Motion** — and only those. The document declares no
+Categories detected: **Colors, Typography, Spacing, Motion** - and only those. The document declares no
 shadows, no breakpoints and no components, so those views never appear. A colors-only file gets a
 colors-only app.
 
@@ -118,7 +118,7 @@ see _why_ in one click, instead of trusting it.
 
 ## Why
 
-Design systems get written down long before they get coded — a `DESIGN.md`, a Notion export, a brand
+Design systems get written down long before they get coded - a `DESIGN.md`, a Notion export, a brand
 guideline PDF pasted into a repo. That document is readable but not _inspectable_. You cannot see the
 palette. You cannot check a contrast ratio. You cannot tell whether the spacing scale is actually a scale.
 And you certainly cannot hand it to Tailwind.
@@ -131,7 +131,7 @@ The file you load is parsed in your browser and never leaves it.
 
 - No backend, no server, no database. The whole app is static files.
 - No upload endpoint, no analytics, no telemetry, no cookies.
-- The only network requests the app makes are the webfont stylesheet, and — if you explicitly opt in — the
+- The only network requests the app makes are the webfont stylesheet, and - if you explicitly opt in - the
   AI enrichment call described below.
 
 It runs perfectly well from an internal share or any static host.
@@ -159,7 +159,7 @@ keeps its start line, end line and heading path. This is the only stage that tou
 downstream works on the structure. Sanitization here is line-preserving, so a recorded line number is always
 an index into the document you actually see.
 
-**2. Extractors** — one module per category, eleven of them. Each reads the shared index and looks for its
+**2. Extractors** - one module per category, eleven of them. Each reads the shared index and looks for its
 own category wherever it can plausibly appear: a markdown table, a CSS or JSON code block, a bullet list, or
 prose. Extractors never see each other's output, which keeps them independently testable and makes adding a
 category an additive change.
@@ -193,15 +193,15 @@ silently blended.
 
 ## Features
 
-- **Fourteen views** — Overview, Colors, Typography, Spacing, Radius, Shadows, Borders, Breakpoints,
+- **Fourteen views** - Overview, Colors, Typography, Spacing, Radius, Shadows, Borders, Breakpoints,
   Components, Motion, Accessibility, Tokens, Health Audit, Source. Only detected categories appear.
-- **Health audit** — a scored report (A+ to D) covering WCAG AA contrast failures, near-duplicate colors,
+- **Health audit** - a scored report (A+ to D) covering WCAG AA contrast failures, near-duplicate colors,
   off-grid spacing, odd-pixel font sizes, missing functional palettes, and components with incomplete
   interactive states. Every issue carries a recommendation and a weighted impact score.
-- **Accessibility tooling** — contrast computed against the document's _declared_ background rather than a
+- **Accessibility tooling** - contrast computed against the document's _declared_ background rather than a
   hardcoded one, with AA/AAA verdicts, plus color-vision simulation for protanopia, deuteranopia,
   tritanopia and achromatopsia.
-- **Eight export formats** — W3C Token JSON, Tailwind v4 `@theme`, Tailwind v3 config, CSS custom
+- **Eight export formats** - W3C Token JSON, Tailwind v4 `@theme`, Tailwind v3 config, CSS custom
   properties, a TypeScript theme object, SCSS variables, an AI prompt / `.cursorrules` block, and a
   normalized `DESIGN.md`.
 - **Instant search** across every token and section on `Cmd/Ctrl + K`, jumping straight to the source line.
@@ -274,4 +274,4 @@ philosophy, a visual tone, principles, and short usage guidance per component.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Alexandre Beguel.
+MIT - see [LICENSE](LICENSE). Copyright (c) 2026 Alexandre Beguel.

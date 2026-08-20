@@ -13,7 +13,7 @@ interface AnimatedLogoProps {
 /**
  * The four cells the hash carves out, in reading order (top-left, top-right,
  * bottom-left, bottom-right). The descending opacity is the mark's ramp and is
- * authored on the <rect> itself, NOT in the keyframes — see src/index.css:
+ * authored on the <rect> itself, NOT in the keyframes - see src/index.css:
  * the animation lives on the wrapping <g>, and the two opacities multiply, so
  * one keyframe set drives all four cells while each keeps its own resting
  * value.
@@ -34,8 +34,8 @@ const GRID_BARS: ReadonlyArray<{ x: number; y: number; width: number; height: nu
 ];
 
 /**
- * The product mark: a hash — the character that is at once the Markdown heading
- * marker and the hex-colour prefix, which is the bridge this tool crosses — with
+ * The product mark: a hash - the character that is at once the Markdown heading
+ * marker and the hex-colour prefix, which is the bridge this tool crosses - with
  * the four cells it carves out filled as colour swatches.
  *
  * Fills come from the theme variables rather than the hex in docs/logo.svg, so

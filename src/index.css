@@ -162,7 +162,7 @@ h3,
 }
 
 /* And the enforcement of it. A dozen inputs and buttons carry Tailwind's
-   `focus:outline-none` — specificity (0,2,0) — and most offer no replacement
+   `focus:outline-none` - specificity (0,2,0) - and most offer no replacement
    affordance, so the rule above would simply lose to them. `:root` plus `:is()`
    (which takes the specificity of its most specific argument, here an attribute
    selector) lifts this to (0,3,0), which wins on specificity alone rather than
@@ -215,8 +215,8 @@ h3,
 
    The header logo (src/components/common/AnimatedLogo.tsx) is a hash whose four
    carved-out cells are colour swatches. Those swatches cascade from unresolved
-   to resolved on a slow loop — a written document becoming a settled palette,
-   values landing in reading order as a parser reaches them — while the hash
+   to resolved on a slow loop - a written document becoming a settled palette,
+   values landing in reading order as a parser reaches them - while the hash
    strokes stay put, because they are the structure and the swatches are the
    data.
 
@@ -228,7 +228,7 @@ h3,
      2. The animation is on a wrapping <g>, not on the <rect>. Each cell is
         authored with its own ramp opacity (1 / .62 / .38 / .22); group and
         element opacity multiply, so a single keyframe set drives all four
-        without flattening the ramp — and the resting state of every cell is
+        without flattening the ramp - and the resting state of every cell is
         simply the value it is authored with.
    =========================================================================== */
 
@@ -241,13 +241,13 @@ h3,
 }
 
 /* The stagger is delay-only: one keyframe set, four offsets, in reading order,
-   0.22s apart — which puts the whole cascade inside the first ~1.5s of the
+   0.22s apart - which puts the whole cascade inside the first ~1.5s of the
    cycle and leaves the rest as hold.
 
    The offsets are NEGATIVE (one full cycle minus the intended stagger) rather
    than the obvious positive 0.22 / 0.44 / 0.66. A positive delay does nothing
    at all until it elapses, so on first paint the three later cells would sit at
-   full opacity, then drop before resolving — the mark would come apart before
+   full opacity, then drop before resolving - the mark would come apart before
    it came together. Seeking backwards instead starts every cell already inside
    the previous cycle's release, so the very first load reads the same as every
    loop after it: dim, then resolving in sequence. */
@@ -264,7 +264,7 @@ h3,
 }
 
 @keyframes logo-mark-resolve {
-  /* Lands quickly and decelerates hard — a value snapping into place. */
+  /* Lands quickly and decelerates hard - a value snapping into place. */
   0% {
     opacity: 0.2;
     transform: scale(0.88);
@@ -309,7 +309,7 @@ h3,
   }
 
   /* The mark, stated outright rather than left to the blanket rule above. That
-     rule only collapses the duration — the delays survive it — and a
+     rule only collapses the duration - the delays survive it - and a
      near-zero-duration animation is exactly the shape that parks an element on
      one keyframe forever: here, a swatch stuck dim and shrunken. Removing the
      animation instead means no keyframe applies at all, so every cell falls

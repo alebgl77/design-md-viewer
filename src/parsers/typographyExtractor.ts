@@ -9,7 +9,7 @@ const TYPE_HEADER_SIGNAL = /font-size|font|line-height|weight|typography|text/i;
 // Sections that own look-alike tables ("| Level | Shadow |", "| Token | Value |").
 const NON_TYPE_SECTION = /shadow|elevation|radius|corner|spacing|space|gap|padding|margin|motion|breakpoint/i;
 
-// A single whole length value — never a shadow, a font stack or a bare keyword.
+// A single whole length value - never a shadow, a font stack or a bare keyword.
 const LENGTH_VALUE = /^[\d.]+(?:px|rem|em|pt)$/i;
 
 function cleanCell(cell: string | undefined): string {

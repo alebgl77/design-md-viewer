@@ -22,7 +22,7 @@ interface PanelPosition {
 const TRIGGER_GAP = 6;
 /** Breathing room kept between the panel and every viewport edge. */
 const VIEWPORT_MARGIN = 8;
-/** Preferred panel width — the former `w-80`, now clamped on narrow screens. */
+/** Preferred panel width - the former `w-80`, now clamped on narrow screens. */
 const PANEL_WIDTH = 320;
 /** Below this the panel scrolls internally rather than shrinking further. */
 const MIN_PANEL_HEIGHT = 140;
@@ -37,7 +37,7 @@ const MIN_PANEL_HEIGHT = 140;
  * `overflow-y: visible` does not either, because the spec computes it back to
  * `auto` whenever `overflow-x` is not `visible`. In the Tokens and Colors
  * tables that clipped the heading path, the line number and the jump-to-source
- * link — the app's whole provenance promise — out of existence. A portal is the
+ * link - the app's whole provenance promise - out of existence. A portal is the
  * only fix that keeps the panel in the DOM tree of the component that owns it.
  */
 export const ProvenancePopover: React.FC<ProvenancePopoverProps> = ({
@@ -123,7 +123,7 @@ export const ProvenancePopover: React.FC<ProvenancePopoverProps> = ({
 
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node;
-      // Both refs, or the panel's own clicks would close it instantly — the
+      // Both refs, or the panel's own clicks would close it instantly - the
       // panel is no longer a DOM descendant of the trigger's wrapper.
       if (triggerRef.current?.contains(target)) return;
       if (panelRef.current?.contains(target)) return;

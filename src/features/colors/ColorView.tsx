@@ -75,7 +75,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
   }, [colors, visionMode]);
 
   // The N x M contrast matrix was previously rebuilt inline, cell by cell, on
-  // every keystroke — and from the UNFILTERED palette. It now derives from the
+  // every keystroke - and from the UNFILTERED palette. It now derives from the
   // filtered set and only when the matrix is actually on screen.
   const matrixRows = useMemo<MatrixRow[]>(() => {
     if (viewMode !== 'matrix') return [];
@@ -288,7 +288,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
                       title="Copy HEX code"
                       // Sits ON the parsed swatch, so it follows the same
                       // black/white scrim rule as the chips beside it rather
-                      // than the app's theme tokens — the ground here is the
+                      // than the app's theme tokens - the ground here is the
                       // user's colour, not one of our surfaces.
                       className={clsx(
                         'backdrop-blur-sm',

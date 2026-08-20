@@ -11,7 +11,7 @@ interface SourceViewProps {
 }
 
 /**
- * A design.md of any real size used to mount one <div> per line in a single commit —
+ * A design.md of any real size used to mount one <div> per line in a single commit -
  * tens of thousands of nodes, each with a freshly allocated ref callback. Documents up to
  * WINDOW_THRESHOLD still render whole (no behaviour change for the common case); anything
  * larger renders a WINDOW_SIZE slice with explicit paging and jump-to-line affordances.
@@ -202,7 +202,7 @@ export const SourceView: React.FC<SourceViewProps> = ({ rawContent, sections, hi
               {isWindowed && (
                 <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-line bg-surface-raised">
                   <span className="text-[11px] font-mono text-content-secondary tabular-nums">
-                    Showing lines {start + 1}–{end} of {totalLines}
+                    Showing lines {start + 1} - {end} of {totalLines}
                   </span>
 
                   <div className="flex items-center gap-1.5">
@@ -280,7 +280,7 @@ export const SourceView: React.FC<SourceViewProps> = ({ rawContent, sections, hi
                       {sec.heading}
                     </h3>
                     <span className="text-xs font-mono text-content-muted tabular-nums shrink-0">
-                      Lines {sec.lineNumber}–{sec.lineEnd}
+                      Lines {sec.lineNumber} - {sec.lineEnd}
                     </span>
                   </div>
                   <pre className="text-xs font-mono text-content-secondary bg-surface-raised p-3.5 rounded-md border border-line-subtle whitespace-pre-wrap">

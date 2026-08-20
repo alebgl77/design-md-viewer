@@ -3,7 +3,7 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   // Theming is driven entirely by the CSS custom properties in src/index.css,
   // which flip on [data-theme]. The `dark:` variant is therefore INTENTIONALLY
-  // UNUSED — a single utility such as `bg-surface-base` is already correct in
+  // UNUSED - a single utility such as `bg-surface-base` is already correct in
   // both themes. This stays on 'class' rather than 'media' so the variant can
   // never fire off the OS preference and silently fork a second, unmaintained
   // colour path.

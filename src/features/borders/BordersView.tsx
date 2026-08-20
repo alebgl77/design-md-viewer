@@ -12,7 +12,7 @@ interface BordersViewProps {
 /**
  * Fallback stroke colour for a border token parsed without one. It is part of
  * the CSS declaration we print and copy, so it stays a literal value and is
- * used for BOTH the printed declaration and the preview — previously the two
+ * used for BOTH the printed declaration and the preview - previously the two
  * disagreed and the preview drew an indigo the copied CSS never contained.
  */
 const FALLBACK_BORDER_COLOR = '#334155';

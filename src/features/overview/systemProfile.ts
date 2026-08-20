@@ -7,12 +7,12 @@ import { auditDesignSystemHealth } from '../../normalizers/healthAuditor';
  * Every axis is a percentage from 0 to 100 in which higher is better, which is the only
  * situation where a radar chart is honest: one entity, several axes, one shared unit and one
  * shared direction of good. An axis that cannot be expressed that way is omitted rather than
- * rescaled — see `SystemProfile.omittedLabels`.
+ * rescaled - see `SystemProfile.omittedLabels`.
  */
 export interface ProfileAxis {
   id: string;
   label: string;
-  /** 0–100, rounded. Higher is better on every axis. */
+  /** 0 - 100, rounded. Higher is better on every axis. */
   percent: number;
   /** The raw counts behind `percent`, in words, so the number is never only a shape. */
   detail: string;
@@ -47,7 +47,7 @@ const DETECTABLE_CATEGORIES: readonly string[] = [
 
 /**
  * `typographyExtractor` back-fills a weight of 400 and a line height of 1.5 on every token,
- * so the fields alone cannot tell a declared value from a parser default — a naive
+ * so the fields alone cannot tell a declared value from a parser default - a naive
  * `token.fontWeight && token.lineHeight` test reads 100% on a document that declares neither.
  * Treating the two fill-in values as "not declared" is the only signal available downstream of
  * the extractor. It can only understate the axis (a document that really does specify 400/1.5
@@ -60,7 +60,7 @@ const FILLED_IN_LINE_HEIGHT = '1.5';
  * Same problem in `componentExtractor`, one degree worse: a component whose section lists no
  * states gets this exact stock array, and because `markdownStructure` closes a section at the
  * next heading of any level, a `#### States` block is never even read as part of its component.
- * A component carrying this array therefore tells us nothing about the document — the document
+ * A component carrying this array therefore tells us nothing about the document - the document
  * may have specified every state or none. That is an absent measurement, not a score of zero,
  * so such components are excluded from the axis and the axis itself disappears when no component
  * has a recorded state list. Reporting the parser's constant as a design-system score would be
@@ -119,7 +119,7 @@ export function buildSystemProfile(system: DesignSystem): SystemProfile {
   const colorCount = system.colors.length;
   const typographyCount = system.typography.length;
 
-  // 1. Contrast — how much of the palette clears WCAG AA against the document's own canvas.
+  // 1. Contrast - how much of the palette clears WCAG AA against the document's own canvas.
   if (colorCount > 0) {
     const passing = system.colors.filter(color => color.contrastWithBg?.aaCompliant).length;
     axes.push({
@@ -132,7 +132,7 @@ export function buildSystemProfile(system: DesignSystem): SystemProfile {
     omittedLabels.push('Contrast');
   }
 
-  // 2. Palette clarity — near-duplicate swatches are design debt, so they are a penalty.
+  // 2. Palette clarity - near-duplicate swatches are design debt, so they are a penalty.
   if (colorCount > 0) {
     const duplicatePenalty = Math.min(100, (metrics.nearDuplicatesFound / Math.max(1, colorCount)) * 100);
     axes.push({
@@ -145,7 +145,7 @@ export function buildSystemProfile(system: DesignSystem): SystemProfile {
     omittedLabels.push('Palette clarity');
   }
 
-  // 3. Type scale — a scale is only reusable if each step says how heavy and how tall it is.
+  // 3. Type scale - a scale is only reusable if each step says how heavy and how tall it is.
   if (typographyCount > 0) {
     const specified = system.typography.filter(declaresWeightAndLineHeight).length;
     axes.push({
@@ -158,7 +158,7 @@ export function buildSystemProfile(system: DesignSystem): SystemProfile {
     omittedLabels.push('Type scale');
   }
 
-  // 4. Grid rhythm — taken verbatim from the health audit, which owns this rule. The audit
+  // 4. Grid rhythm - taken verbatim from the health audit, which owns this rule. The audit
   //    returns 100 when it measured nothing at all, so the axis is dropped in that case rather
   //    than reporting a perfect score for an empty measurement.
   const gridMeasurements = system.spacing.length + system.typography.filter(t => t.fontSizePx).length;
@@ -173,7 +173,7 @@ export function buildSystemProfile(system: DesignSystem): SystemProfile {
     omittedLabels.push('Grid rhythm');
   }
 
-  // 5. Component states — a component that documents no states documents no keyboard story.
+  // 5. Component states - a component that documents no states documents no keyboard story.
   //    Only components whose state list survived extraction can be judged; see the note on
   //    STOCK_COMPONENT_STATES for why the rest are not evidence of anything.
   const statedComponents = system.components.filter(hasRecordedStates);
@@ -189,7 +189,7 @@ export function buildSystemProfile(system: DesignSystem): SystemProfile {
     omittedLabels.push('Component states');
   }
 
-  // 6. Coverage — how many of the categories the parser can find this document actually fills.
+  // 6. Coverage - how many of the categories the parser can find this document actually fills.
   const detected = system.overview.categoriesDetected.filter(category =>
     DETECTABLE_CATEGORIES.includes(category)
   ).length;

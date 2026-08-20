@@ -31,7 +31,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   const resetTimer = useRef<ReturnType<typeof setTimeout>>();
 
   // The timer outlives the click, so it has to be cancelled if the row (or the
-  // whole view) unmounts first — otherwise setState fires on a dead component.
+  // whole view) unmounts first - otherwise setState fires on a dead component.
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
   const flash = useCallback((next: Exclude<CopyState, 'idle'>) => {

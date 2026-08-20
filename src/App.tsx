@@ -32,8 +32,8 @@ const ExportModal = lazy(() =>
 
 /*
   The fourteen feature views are code-split behind a single Suspense boundary.
-  They were static imports, which meant every byte of every view — the audit
-  engine, the source highlighter, all of it — had to arrive before the drop zone
+  They were static imports, which meant every byte of every view - the audit
+  engine, the source highlighter, all of it - had to arrive before the drop zone
   could even be shown, for a user who had not yet chosen a file. Only one view
   is ever mounted at a time, so each one is fetched the first time its category
   is opened.
@@ -75,8 +75,8 @@ const HealthAuditView = lazy(() =>
 const SourceView = lazy(() => import('./features/source/SourceView').then(m => ({ default: m.SourceView })));
 
 /**
- * Suspense fallback shaped like the views it stands in for — a title block, a
- * row of summary chips, then a card grid — so the layout does not jump when the
+ * Suspense fallback shaped like the views it stands in for - a title block, a
+ * row of summary chips, then a card grid - so the layout does not jump when the
  * real content lands. A centred spinner would reserve none of that space.
  */
 const ViewSkeleton: React.FC = () => (
@@ -200,8 +200,8 @@ export function App() {
       One shell for both states. The landing screen and the loaded layout used
       to be separate returns, each with its own <main>, which put two
       `main` landmarks in the source and left screen-reader users guessing which
-      one a page offered. There is now exactly one, and the skip link — missing
-      entirely before — has a stable target to point at.
+      one a page offered. There is now exactly one, and the skip link - missing
+      entirely before - has a stable target to point at.
     */
     <div className="min-h-screen bg-surface-base text-content-primary flex flex-col">
       <a
@@ -260,7 +260,7 @@ export function App() {
           />
         )}
 
-        {/* Content Area — the single `main` landmark */}
+        {/* Content Area - the single `main` landmark */}
         <main
           id="main-content"
           tabIndex={-1}

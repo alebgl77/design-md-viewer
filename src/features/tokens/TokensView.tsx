@@ -81,7 +81,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
       </div>
 
       {/* Tokens Table.
-          Only the horizontal axis scrolls, and it does so on this wrapper alone — the
+          Only the horizontal axis scrolls, and it does so on this wrapper alone - the
           ProvenancePopover escapes to a portal, so nothing here needs to clip it. */}
       <div className="rounded-lg border border-line bg-surface-raised shadow-deep">
         <div className="overflow-x-auto">

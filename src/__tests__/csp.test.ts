@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 /**
  * The Content Security Policy allows exactly one inline script: the theme bootstrap, pinned by
  * hash. Nothing enforces that the hash still describes the script, so editing the bootstrap
- * would silently break it — the browser would refuse to run it and the page would flash the
+ * would silently break it - the browser would refuse to run it and the page would flash the
  * wrong theme on every load, with no error anyone would notice in review.
  *
  * These tests make that failure loud.

@@ -3,7 +3,7 @@ import { ParsedMarkdownStructure } from './markdownStructure';
 import { parsePxValue, formatRem } from '../normalizers/unitNormalizer';
 
 // Sections owned by another extractor. A length found under one of these headings is a type
-// size, a corner radius or a blur — never spacing — so the whole table/list is skipped.
+// size, a corner radius or a blur - never spacing - so the whole table/list is skipped.
 const NON_SPACING_SECTION = /type|font|typograph|radius|corner|shadow|elevation|breakpoint/i;
 
 // Positive evidence that a heading or a column header is about spacing.
