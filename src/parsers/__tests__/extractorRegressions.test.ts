@@ -3,7 +3,7 @@ import { parseDesignDocument } from '../pipeline';
 import { parseMarkdownStructure } from '../markdownStructure';
 import {
   SAMPLE_APEX_DESIGN_SYSTEM,
-  SAMPLE_IAB2B_DESIGN_SYSTEM,
+  SAMPLE_SCRAPED_DESIGN_SYSTEM,
   SAMPLE_MINIMAL_COLORS,
   SAMPLE_CYBERPUNK_TOKENS,
 } from '../../samples/fixtures';
@@ -41,7 +41,7 @@ describe('Typography extractor: look-alike tables', () => {
   });
 
   it('should never fabricate a font size for a row that has none', () => {
-    const ds = parseDesignDocument(SAMPLE_IAB2B_DESIGN_SYSTEM, 'ia-b2b.md');
+    const ds = parseDesignDocument(SAMPLE_SCRAPED_DESIGN_SYSTEM, 'meridian.md');
 
     expect(ds.typography.length).toBeGreaterThan(0);
     ds.typography.forEach(t => {
@@ -54,7 +54,7 @@ describe('Typography extractor: look-alike tables', () => {
 });
 
 describe('Spacing extractor: spacing-specific evidence', () => {
-  const ds = parseDesignDocument(SAMPLE_IAB2B_DESIGN_SYSTEM, 'ia-b2b.md');
+  const ds = parseDesignDocument(SAMPLE_SCRAPED_DESIGN_SYSTEM, 'meridian.md');
 
   it('should yield exactly the documented spacing scale', () => {
     expect(ds.spacing.map(s => s.value).sort()).toEqual(
@@ -90,7 +90,7 @@ describe('Provenance: line numbers index the original document', () => {
   it('should keep rawLines aligned with a plain split of the input', () => {
     const docs = [
       SAMPLE_APEX_DESIGN_SYSTEM,
-      SAMPLE_IAB2B_DESIGN_SYSTEM,
+      SAMPLE_SCRAPED_DESIGN_SYSTEM,
       SAMPLE_MINIMAL_COLORS,
       SAMPLE_CYBERPUNK_TOKENS,
     ];
@@ -135,7 +135,7 @@ describe('Color extractor: names carry no markdown punctuation', () => {
   it('should strip backticks, asterisks and underscores from every fixture', () => {
     const docs = [
       SAMPLE_APEX_DESIGN_SYSTEM,
-      SAMPLE_IAB2B_DESIGN_SYSTEM,
+      SAMPLE_SCRAPED_DESIGN_SYSTEM,
       SAMPLE_MINIMAL_COLORS,
       SAMPLE_CYBERPUNK_TOKENS,
     ];

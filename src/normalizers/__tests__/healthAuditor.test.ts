@@ -8,7 +8,7 @@ import {
   exportToScssVariables,
   exportToAiPromptRules,
 } from '../../utils/exportFormats';
-import { SAMPLE_APEX_DESIGN_SYSTEM, SAMPLE_IAB2B_DESIGN_SYSTEM } from '../../samples/fixtures';
+import { SAMPLE_APEX_DESIGN_SYSTEM, SAMPLE_SCRAPED_DESIGN_SYSTEM } from '../../samples/fixtures';
 
 /**
  * A deliberately unremarkable system: light canvas, every swatch AA against it,
@@ -100,8 +100,8 @@ describe('Design System Health Auditor & Modern Enhancements', () => {
     expect(report.score).toBe(100 - deductions);
   });
 
-  it('should characterize the real-world ia-b2b scrape without scoring it as clean', () => {
-    const scrape = parseDesignDocument(SAMPLE_IAB2B_DESIGN_SYSTEM, 'ia-b2b.md');
+  it('should characterize a real-world site scrape without scoring it as clean', () => {
+    const scrape = parseDesignDocument(SAMPLE_SCRAPED_DESIGN_SYSTEM, 'meridian.md');
     const report = auditDesignSystemHealth(scrape);
 
     // A 22.4px base unit cannot satisfy a 4px grid, so this document legitimately

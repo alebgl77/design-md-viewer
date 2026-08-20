@@ -85,7 +85,7 @@ jobs:
           }
 
           async function loadSample(page) {
-            await page.getByRole('button', { name: /ia-b2b\.fr System/ }).click();
+            await page.getByRole('button', { name: /Extracted Site/ }).click();
             // The views are lazy chunks; wait for real content rather than a fixed sleep.
             await page.getByRole('button', { name: /^Colors/ }).waitFor({ timeout: 15000 });
             await page.evaluate(() => document.fonts.ready);

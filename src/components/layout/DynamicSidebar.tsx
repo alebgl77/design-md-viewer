@@ -150,7 +150,7 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
         </nav>
 
         {/*
-          Footer. What stood here was a pulsing dot next to "ia-b2b.fr Ready":
+          Footer. What stood here was a pulsing dot next to a scraped brand name:
           leftover branding from a scraped sample document, a status indicator
           wired to no status, and an infinite animation. Replaced with the one
           claim about this app that is actually verifiable from its own source.

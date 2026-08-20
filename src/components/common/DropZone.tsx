@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import {
-  SAMPLE_IAB2B_DESIGN_SYSTEM,
+  SAMPLE_SCRAPED_DESIGN_SYSTEM,
   SAMPLE_MINIMAL_COLORS,
   SAMPLE_NARRATIVE_GUIDELINES,
   SAMPLE_CYBERPUNK_TOKENS,
@@ -47,8 +47,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
   const [isDragging, setIsDragging] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isScaffoldModalOpen, setIsScaffoldModalOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<'iab2b' | 'mobile' | 'minimal' | 'cyberpunk'>(
-    'iab2b'
+  const [selectedTemplate, setSelectedTemplate] = useState<'scraped' | 'mobile' | 'minimal' | 'cyberpunk'>(
+    'scraped'
   );
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,8 +125,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
   const getTemplateContent = () => {
     switch (selectedTemplate) {
-      case 'iab2b':
-        return SAMPLE_IAB2B_DESIGN_SYSTEM;
+      case 'scraped':
+        return SAMPLE_SCRAPED_DESIGN_SYSTEM;
       case 'mobile':
         return SAMPLE_NARRATIVE_GUIDELINES;
       case 'minimal':
@@ -137,7 +137,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
   };
 
   const templateOptions: { id: typeof selectedTemplate; label: string }[] = [
-    { id: 'iab2b', label: 'ia-b2b.fr System' },
+    { id: 'scraped', label: 'Extracted Site' },
     { id: 'mobile', label: 'Mobile & Consumer' },
     { id: 'minimal', label: 'Minimal Palette' },
     { id: 'cyberpunk', label: 'Cyberpunk HUD' },
@@ -262,13 +262,13 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <button
             type="button"
-            onClick={() => onFileLoaded(SAMPLE_IAB2B_DESIGN_SYSTEM, 'ia-b2b-design-system.md')}
+            onClick={() => onFileLoaded(SAMPLE_SCRAPED_DESIGN_SYSTEM, 'meridian-design-system.md')}
             className="flex flex-col text-left p-4 rounded-lg bg-surface-raised hover:bg-accent/5 border border-line hover:border-accent/50 transition-all group shadow-deep"
           >
             <div className="flex items-center justify-between mb-1.5">
               <span className="font-bold text-xs text-content-primary group-hover:text-accent flex items-center gap-1.5 font-heading">
                 <Layers className="w-3.5 h-3.5 text-accent" />
-                ia-b2b.fr System
+                Extracted Site System
               </span>
               <ArrowRight className="w-3 h-3 text-content-secondary group-hover:text-accent group-hover:translate-x-0.5 transition-transform" />
             </div>

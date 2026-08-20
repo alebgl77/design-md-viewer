@@ -1,12 +1,20 @@
-export const SAMPLE_IAB2B_DESIGN_SYSTEM = `# Design System Inspired by ia-b2b.fr
+/**
+ * A design system reverse-engineered from a live marketing site, warts and all.
+ *
+ * This is the awkward fixture on purpose: headings that do not nest cleanly, colours named after
+ * whatever prose surrounded them, a type scale on no grid at all. It is what the parser meets in
+ * the wild, as opposed to SAMPLE_APEX_DESIGN_SYSTEM, which is what a design system looks like when
+ * somebody wrote it deliberately.
+ */
+export const SAMPLE_SCRAPED_DESIGN_SYSTEM = `# Meridian Design System
 
-> Auto-extracted from \`https://ia-b2b.fr/\` on 2026-08-19
+> Auto-extracted from a live marketing site on 2026-08-19
 
 ## 1. Visual Theme & Atmosphere
 
-High-contrast dark mode with vivid accents — feels modern, technical, and focused.
+High-contrast dark mode with vivid accents - feels modern, technical, and focused.
 
-The hero section leads with "Au-delà de l'automatisation. L'IA comme moteur de votre stratégie B2B." followed by "ia-b2b.fr accompagne les PME et ETI françaises de l'audit de potentiel à l'intégration IA opérationnelle".
+The hero section leads with "Beyond automation. Intelligence as the engine of your strategy." followed by "Meridian guides mid-market teams from opportunity audit through to operational rollout".
 
 **Key Characteristics:**
 - Bricolage Grotesque as the heading font (custom web font loaded via @font-face)
