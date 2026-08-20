@@ -183,6 +183,11 @@ A `design.md` is a file teams pass around and that agents generate. This project
   emitted through `JSON.stringify` rather than interpolated into a template. A token value cannot contribute
   syntax to an exported file.
 - Prompt-injection text inside a document stays inert data. There is a test for exactly that.
+- A Content Security Policy ships in the document itself, since GitHub Pages serves no headers this
+  project controls. Scripts are pinned to first-party code plus one hashed inline bootstrap, and the
+  page can reach exactly one external origin.
+
+The threat model and how to report an issue are in [SECURITY.md](SECURITY.md).
 
 ## Quickstart
 
@@ -220,9 +225,13 @@ The parser is fully deterministic and the app is completely usable without any A
 extra that adds only the conceptual metadata a document rarely states outright: a tagline, a design
 philosophy, a visual tone, principles, and short usage guidance per component.
 
-- It requires **your own Google Gemini API key**, or a custom endpoint if you would rather proxy the call.
-- The key stays in your browser and is sent only to the endpoint you configured. There is no server in this
-  project that could receive it.
+- It requires **your own Google Gemini API key**.
+- The key stays in your browser and travels in a request header, never in a URL. A key in a query
+  string leaks into browser history and into every log between you and the API; a header does not.
+  There is no server in this project that could receive it either way, because there is no server.
+- The hosted build talks to exactly one origin. The Content Security Policy in `index.html` pins
+  `connect-src` to the Gemini API, so a parsed document cannot be sent anywhere. Routing enrichment
+  through your own proxy therefore means self-hosting and widening that one line deliberately.
 - It is constrained to conceptual fields. It never invents hex codes or pixel measurements, and the response
   is validated against a Zod schema before anything reaches the UI.
 - Without a key, the app runs at full functionality on deterministic parsing alone.

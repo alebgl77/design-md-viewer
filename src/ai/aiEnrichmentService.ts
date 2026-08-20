@@ -64,13 +64,21 @@ Return a single JSON object strictly matching this schema:
       const data = await res.json();
       rawJsonText = data.text || JSON.stringify(data);
     } else {
-      // Direct Gemini API call
+      // Direct Gemini API call.
+      //
+      // The key travels in the x-goog-api-key header, never in the query string. A key in a URL
+      // leaks well beyond the request: it lands in browser history, in any intermediary or proxy
+      // log, and in the Referer of anything the response goes on to load. Google supports both
+      // forms; only one of them is safe to use from a browser.
       const model = config.model || 'gemini-1.5-flash';
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': config.apiKey ?? '',
+        },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {

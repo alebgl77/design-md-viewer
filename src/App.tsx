@@ -6,10 +6,29 @@ import { DropZone } from './components/common/DropZone';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { AppHeader } from './components/layout/AppHeader';
 import { DynamicSidebar } from './components/layout/DynamicSidebar';
-import { SearchModal } from './components/layout/SearchModal';
-import { AiSettingsModal } from './components/layout/AiSettingsModal';
-import { ExportModal } from './components/layout/ExportModal';
 import { Menu, X } from 'lucide-react';
+
+/*
+  The three modal surfaces are split out and mounted only while open.
+
+  Splitting alone would not have helped: a statically imported component is in the initial
+  chunk whether or not it ever renders. AiSettingsModal is the expensive one, because it
+  reaches the AI service and through it Zod, which measured ~15% of the bundle. Every visitor
+  was paying for a validator behind an optional, API-key-gated feature before they could so
+  much as drop a file.
+
+  Mounting on open rather than hiding with a prop also means the Modal primitive's focus trap
+  and scroll lock tear down for real on close, instead of lingering on a hidden subtree.
+*/
+const SearchModal = lazy(() =>
+  import('./components/layout/SearchModal').then(m => ({ default: m.SearchModal }))
+);
+const AiSettingsModal = lazy(() =>
+  import('./components/layout/AiSettingsModal').then(m => ({ default: m.AiSettingsModal }))
+);
+const ExportModal = lazy(() =>
+  import('./components/layout/ExportModal').then(m => ({ default: m.ExportModal }))
+);
 
 /*
   The fourteen feature views are code-split behind a single Suspense boundary.
@@ -337,25 +356,29 @@ export function App() {
         </main>
       </div>
 
-      {/* Modals & Drawers */}
+      {/* Modals & Drawers. Each mounts only while open, so its chunk is fetched on first use. */}
       {system && (
-        <>
-          <SearchModal
-            isOpen={isSearchOpen}
-            onClose={() => setIsSearchOpen(false)}
-            system={system}
-            onSelectResult={handleSelectSearchResult}
-          />
+        <Suspense fallback={null}>
+          {isSearchOpen && (
+            <SearchModal
+              isOpen
+              onClose={() => setIsSearchOpen(false)}
+              system={system}
+              onSelectResult={handleSelectSearchResult}
+            />
+          )}
 
-          <AiSettingsModal
-            isOpen={isAiSettingsOpen}
-            onClose={() => setIsAiSettingsOpen(false)}
-            system={system}
-            onEnrichmentComplete={enriched => setSystem(enriched)}
-          />
+          {isAiSettingsOpen && (
+            <AiSettingsModal
+              isOpen
+              onClose={() => setIsAiSettingsOpen(false)}
+              system={system}
+              onEnrichmentComplete={enriched => setSystem(enriched)}
+            />
+          )}
 
-          <ExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} system={system} />
-        </>
+          {isExportOpen && <ExportModal isOpen onClose={() => setIsExportOpen(false)} system={system} />}
+        </Suspense>
       )}
     </div>
   );

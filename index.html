@@ -4,6 +4,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- This app parses documents it has every reason to distrust, and GitHub Pages serves no
+         response headers we control, so the policy has to travel in the document itself.
+         Note that frame-ancestors is ignored in a meta CSP; framing is out of reach here.
+
+         script-src carries the hash of the theme bootstrap below and nothing else, so no
+         injected script can run even if something slipped past React's escaping.
+         style-src needs 'unsafe-inline' because previews render parsed values through the
+         style attribute; that is the price of showing a document its own colours.
+         connect-src is deliberately narrow: a tool that ingests a hostile file should not be
+         able to POST that file anywhere. Self-hosting with a proxy endpoint means widening
+         this one line, which is a decision worth making consciously. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               base-uri 'self';
+               object-src 'none';
+               form-action 'none';
+               frame-src 'none';
+               worker-src 'self';
+               manifest-src 'self';
+               script-src 'self' 'sha256-ozvUttAhnSwsdniJQxiGaY3KUVAng80mELnx/slPC8M=';
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+               font-src 'self' https://fonts.gstatic.com;
+               img-src 'self' data: blob:;
+               connect-src 'self' https://generativelanguage.googleapis.com"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
     <!-- Theme bootstrap. Runs before first paint so an explicitly chosen theme
          is stamped on <html> ahead of any styled pixel, preventing a flash of
          the wrong theme. With no stored preference the attribute stays absent
@@ -42,10 +70,13 @@
     />
     <meta name="twitter:image" content="https://alebgl77.github.io/design-md-viewer/og-card.png" />
 
+    <!-- The mark itself: a hash, the character that is both the Markdown heading marker and the
+         hex-colour prefix, with the cells it carves out filled as swatches. Kept in sync with
+         docs/logo.svg. -->
     <link
       rel="icon"
       type="image/svg+xml"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='4'/><path d='M3 9h18'/><path d='M9 21V9'/></svg>"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='4' y='4' width='14' height='14' rx='2' fill='%2310b981'/><rect x='46' y='4' width='14' height='14' rx='2' fill='%2310b981' opacity='.62'/><rect x='4' y='46' width='14' height='14' rx='2' fill='%2310b981' opacity='.38'/><rect x='46' y='46' width='14' height='14' rx='2' fill='%2310b981' opacity='.22'/><g fill='%2334d399'><rect x='18' y='4' width='6' height='56' rx='1.5'/><rect x='40' y='4' width='6' height='56' rx='1.5'/><rect x='4' y='18' width='56' height='6' rx='1.5'/><rect x='4' y='40' width='56' height='6' rx='1.5'/></g></svg>"
     />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
