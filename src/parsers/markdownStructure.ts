@@ -45,7 +45,7 @@ export function parseMarkdownStructure(rawMarkdown: string): ParsedMarkdownStruc
   const tables: MarkdownTable[] = [];
   const listItems: MarkdownListItem[] = [];
 
-  let currentHeadingStack: { level: number; text: string }[] = [];
+  const currentHeadingStack: { level: number; text: string }[] = [];
   let currentSection: RawSection | null = null;
 
   let inCodeBlock = false;

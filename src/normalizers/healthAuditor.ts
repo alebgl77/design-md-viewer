@@ -39,10 +39,8 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
   const palette = [...new Map(system.colors.map(c => [c.hex.toLowerCase(), c])).values()];
 
   // 1. Accessibility & Contrast Checks
-  let failingContrastCount = 0;
   palette.forEach((col) => {
     if (col.contrastWithBg && !col.contrastWithBg.aaCompliant && col.paletteGroup !== 'surface') {
-      failingContrastCount++;
       issues.push({
         id: `a11y-contrast-${col.id}`,
         type: 'warning',
@@ -147,7 +145,6 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
   // 4. Semantic Completeness
   const semanticGroups = new Set(palette.map(c => c.paletteGroup));
   const hasBrand = semanticGroups.has('brand');
-  const hasNeutral = semanticGroups.has('neutral') || semanticGroups.has('surface');
   const hasSemantic = semanticGroups.has('semantic');
 
   if (!hasBrand && palette.length > 0) {
@@ -208,14 +205,14 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
   const totalDeductions = issues.reduce((acc, issue) => acc + issue.impactScore, 0);
   const score = Math.max(20, Math.min(100, 100 - totalDeductions));
 
-  let grade: DesignSystemHealthReport['grade'] = 'A+';
+  let grade: DesignSystemHealthReport['grade'];
   if (score >= 95) grade = 'A+';
   else if (score >= 88) grade = 'A';
   else if (score >= 75) grade = 'B';
   else if (score >= 60) grade = 'C';
   else grade = 'D';
 
-  let summary = '';
+  let summary: string;
   if (grade === 'A+' || grade === 'A') {
     summary = 'Outstanding architecture! Clean tokens, high accessibility compliance, and well-structured grid rhythm.';
   } else if (grade === 'B') {

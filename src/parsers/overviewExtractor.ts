@@ -7,7 +7,7 @@ export function extractOverview(
   typography: TypographyToken[],
   fileName: string
 ): DesignSystemOverview {
-  let name: string | undefined = undefined;
+  let name: string | undefined;
   let description: string | undefined = undefined;
   let philosophy: string | undefined = undefined;
   let visualTone: string | undefined = undefined;

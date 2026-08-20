@@ -26,7 +26,7 @@ export const ComponentsView: React.FC<ComponentsViewProps> = ({
   // NOTE: the two generators below emit source code for the CONSUMER's project. Their
   // literals are export payload, not this app's chrome, so they are deliberately left
   // untouched by the token migration — rewriting them would change what users copy out.
-  const generateReactCode = (comp: ComponentSpec, variant: string, size: string): string => {
+  const generateReactCode = (comp: ComponentSpec, variant: string, _size: string): string => {
     if (comp.previewType === 'button' || comp.name.toLowerCase().includes('button')) {
       return `import React from 'react';
 

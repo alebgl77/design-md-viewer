@@ -54,5 +54,5 @@ export function isSafeCssValue(val: string): boolean {
 
 export function isSafeIdentifier(id: string): boolean {
   if (!id || typeof id !== 'string') return false;
-  return /^[a-zA-Z0-9_\-\.\:\/ ]{1,100}$/.test(id.trim());
+  return /^[a-zA-Z0-9_\-./: ]{1,100}$/.test(id.trim());
 }

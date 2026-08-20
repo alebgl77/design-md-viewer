@@ -372,7 +372,7 @@ function buildColorId(index: number, name: string): string {
 function extractFromJson(
   obj: any,
   block: { headingPath: string[]; startLine: number; code: string },
-  addColor: Function,
+  addColor: (name: string, rawValue: string, provenance: Provenance, roleHint?: string) => void,
   prefix = ''
 ) {
   if (!obj || typeof obj !== 'object') return;

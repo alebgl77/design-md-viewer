@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DesignSystem, ComponentSpec } from '../schema/designSystem';
+import { DesignSystem } from '../schema/designSystem';
 
 const AiEnrichmentResponseSchema = z.object({
   tagline: z.string().optional(),

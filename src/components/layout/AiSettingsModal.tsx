@@ -86,7 +86,7 @@ export const AiSettingsModal: React.FC<AiSettingsModalProps> = ({
   onEnrichmentComplete,
 }) => {
   const [apiKey, setApiKey] = useState(readStoredApiKey);
-  const [customEndpoint, setCustomEndpoint] = useState(readStoredEndpoint);
+  const [customEndpoint] = useState(readStoredEndpoint);
   const [model, setModel] = useState('gemini-1.5-flash');
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);

@@ -3,7 +3,6 @@ import { BoxSelect } from 'lucide-react';
 import { BorderToken } from '../../schema/designSystem';
 import { CopyButton } from '../../components/common/CopyButton';
 import { ProvenancePopover } from '../../components/common/ProvenancePopover';
-import { Badge } from '../../components/common/Badge';
 
 interface BordersViewProps {
   borders: BorderToken[];

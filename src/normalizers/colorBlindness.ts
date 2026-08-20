@@ -38,12 +38,13 @@ export function simulateColorVision(hex: string, mode: ColorVisionMode): string 
       bSim = 0.0 * rNorm + 0.475 * gNorm + 0.525 * bNorm;
       break;
 
-    case 'achromatopsia': // Monochromacy / Grayscale
+    case 'achromatopsia': { // Monochromacy / Grayscale
       const gray = 0.299 * rNorm + 0.587 * gNorm + 0.114 * bNorm;
       rSim = gray;
       gSim = gray;
       bSim = gray;
       break;
+    }
   }
 
   const rFinal = Math.max(0, Math.min(255, Math.round(rSim * 255)));
