@@ -72,31 +72,63 @@ export function resolveTokensAndReferences(
     return refs;
   }
 
-  // Recursive resolver with cycle detection
-  function resolveValue(val: string, visited = new Set<string>()): string {
+  const resolvedDefinitions = new Map<string, string>();
+
+  // Recursive resolver with cycle detection. Cache only context-independent
+  // results, and only reuse them for the first reference in a root value.
+  function resolveValue(
+    val: string,
+    visited = new Set<string>()
+  ): { value: string; encounteredVisitedReference: boolean } {
     const refs = extractReferences(val);
-    if (refs.length === 0) return val;
+    if (refs.length === 0) {
+      return { value: val, encounteredVisitedReference: false };
+    }
 
     let resolved = val;
+    let encounteredVisitedReference = false;
     for (const ref of refs) {
-      if (visited.has(ref)) continue; // avoid cycle
+      if (visited.has(ref)) {
+        encounteredVisitedReference = true;
+        continue; // avoid cycle
+      }
+
+      const canReuseCachedDefinition = visited.size === 0;
       visited.add(ref);
 
       if (knownColorVars[ref]) {
         resolved = resolved.replace(new RegExp(`var\\(\\s*${ref}\\s*\\)`, 'g'), knownColorVars[ref]);
       } else if (rawDefinitions.has(ref)) {
-        const targetDef = rawDefinitions.get(ref)!;
-        const targetResolved = resolveValue(targetDef.value, new Set(visited));
+        let targetResolved: string;
+
+        if (canReuseCachedDefinition && resolvedDefinitions.has(ref)) {
+          targetResolved = resolvedDefinitions.get(ref)!;
+        } else {
+          const targetDef = rawDefinitions.get(ref)!;
+          const targetResult = resolveValue(targetDef.value, new Set(visited));
+          targetResolved = targetResult.value;
+          encounteredVisitedReference ||= targetResult.encounteredVisitedReference;
+
+          if (!targetResult.encounteredVisitedReference) {
+            resolvedDefinitions.set(ref, targetResolved);
+          }
+        }
+
         resolved = resolved.replace(new RegExp(`var\\(\\s*${ref}\\s*\\)`, 'g'), targetResolved);
       }
     }
-    return resolved;
+
+    return { value: resolved, encounteredVisitedReference };
   }
 
   // Build GenericToken objects
   rawDefinitions.forEach((def, name) => {
     const references = extractReferences(def.value);
-    const resolvedValue = resolveValue(def.value);
+    const resolvedResult = resolveValue(def.value);
+    const resolvedValue = resolvedResult.value;
+    if (!resolvedResult.encounteredVisitedReference) {
+      resolvedDefinitions.set(name, resolvedValue);
+    }
     const category = categorizeToken(name);
 
     tokenMap.set(name, {

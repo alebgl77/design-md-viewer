@@ -161,6 +161,49 @@ ${Array.from({ length: 10 }, (_, i) => `* **Slate ${i}**: #1e2${i}3b`).join('\n'
     expect(dupIssue?.recommendation).toContain('Consolidate');
   });
 
+  it('should preserve the exact order of near-duplicate issue IDs', () => {
+    const nearDuplicateRamp = `# Ordered Ramp
+## Colors
+* **Slate One**: #1e293b
+* **Slate Two**: #1f2937
+* **Slate Three**: #20293a
+`;
+    const report = auditDesignSystemHealth(parseDesignDocument(nearDuplicateRamp, 'ordered.md'));
+
+    expect(report.issues.filter(issue => issue.id.startsWith('dup-color-')).map(issue => issue.id)).toEqual([
+      'dup-color-col-1-slate-one-col-2-slate-two',
+      'dup-color-col-1-slate-one-col-3-slate-three',
+      'dup-color-col-2-slate-two-col-3-slate-three',
+    ]);
+  });
+
+  it('should cache a report by DesignSystem identity without sharing across clones', () => {
+    const firstReport = auditDesignSystemHealth(system);
+    const secondReport = auditDesignSystemHealth(system);
+    const clonedReport = auditDesignSystemHealth({ ...system });
+
+    expect(secondReport).toBe(firstReport);
+    expect(clonedReport).not.toBe(firstReport);
+    expect(clonedReport).toEqual(firstReport);
+  });
+
+  it('should audit a 5,000-color input with 41,616 unique palette pairs', () => {
+    const color = system.colors[0];
+    const largeSystem = {
+      ...system,
+      colors: Array.from({ length: 5_000 }, (_, index) => ({
+        ...color,
+        id: `benchmark-${index}`,
+        name: `Benchmark ${index}`,
+        hex: `#${(index % 289).toString(16).padStart(6, '0')}`,
+      })),
+    };
+
+    const report = auditDesignSystemHealth(largeSystem);
+
+    expect(report.metrics.nearDuplicatesFound).toBeGreaterThan(0);
+  });
+
   it('should simulate Color Vision Deficiency (CVD) correctly', () => {
     const pureRed = '#ff0000';
     const protanopia = simulateColorVision(pureRed, 'protanopia');
