@@ -20,6 +20,7 @@ import {
 } from '../../samples/fixtures';
 import { copyToClipboard } from '../../utils/clipboard';
 import { Modal } from './Modal';
+import { AnimatedLogo } from './AnimatedLogo';
 
 const SCAFFOLD_TITLE_ID = 'scaffold-modal-title';
 
@@ -147,6 +148,14 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
     <div className="w-full max-w-4xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center animate-in fade-in duration-300">
       {/* Brand Header */}
       <div className="text-center max-w-2xl mb-8">
+        {/*
+          The mark, at the one moment there is room for it. The header tile shows it at 22px, where
+          the swatch cascade is barely legible; here it carries the whole screen, and the animation
+          reads as what it depicts: a written document resolving into colour, which is the thing the
+          user is about to do. Hidden from assistive tech because the h1 below already names the app.
+        */}
+        <AnimatedLogo size={96} className="mx-auto mb-6" />
+
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-sm bg-accent/15 border border-accent/30 text-accent text-xs font-semibold uppercase tracking-wider mb-4">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Intelligent Design System Visualizer</span>
