@@ -47,6 +47,17 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
     });
   }, [colors, selectedGroup, searchFilter]);
 
+  // A scraped palette can carry thousands of colours. Rendering every swatch card at once is where
+  // that turns pathological: 4000 colours meant ~176k DOM nodes and a multi-second freeze. Each
+  // card is heavy, so the ceiling is deliberately low, and the overflow is surfaced honestly below
+  // rather than dropped in silence. The filter reaches the ones past the cap.
+  const RENDER_CAP = 300;
+  const visibleColors = useMemo(
+    () => (filteredColors.length > RENDER_CAP ? filteredColors.slice(0, RENDER_CAP) : filteredColors),
+    [filteredColors]
+  );
+  const hiddenColorCount = filteredColors.length - visibleColors.length;
+
   // Tab counts are read once per palette group on every render otherwise.
   const groupCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -80,7 +91,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
   const matrixRows = useMemo<MatrixRow[]>(() => {
     if (viewMode !== 'matrix') return [];
 
-    return filteredColors.map(color => ({
+    return visibleColors.map(color => ({
       color,
       cells: effectiveSurfaces.map(surface => {
         const ratio = getContrastRatio(color.hex, surface.hex);
@@ -92,7 +103,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
         };
       }),
     }));
-  }, [viewMode, filteredColors, effectiveSurfaces]);
+  }, [viewMode, visibleColors, effectiveSurfaces]);
 
   const segmentClass = (active: boolean) =>
     clsx(
@@ -234,9 +245,19 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
       )}
 
       {/* Grid View */}
+      {hiddenColorCount > 0 && (
+        <div className="mb-4 rounded-md border border-line bg-surface-inset px-4 py-2.5 text-xs text-content-secondary">
+          Showing the first{' '}
+          <span className="font-mono tabular-nums text-content-primary">{visibleColors.length}</span> of{' '}
+          <span className="font-mono tabular-nums text-content-primary">{filteredColors.length}</span>{' '}
+          colours. Narrow the set with the filter above to reach the other{' '}
+          <span className="font-mono tabular-nums">{hiddenColorCount}</span>.
+        </div>
+      )}
+
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredColors.map(color => {
+          {visibleColors.map(color => {
             // Parsed document value: rendered as data, never tokenised.
             const renderedHex = simulatedHexById.get(color.id) ?? color.hex;
             const contrast = color.contrastWithBg;
@@ -387,7 +408,7 @@ export const ColorView: React.FC<ColorViewProps> = ({ colors, onNavigateToSource
               </tr>
             </thead>
             <tbody className="divide-y divide-line-subtle">
-              {filteredColors.map(color => {
+              {visibleColors.map(color => {
                 // Parsed document value: rendered as data, never tokenised.
                 const renderedHex = simulatedHexById.get(color.id) ?? color.hex;
 

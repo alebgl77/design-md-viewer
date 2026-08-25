@@ -30,6 +30,16 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
     });
   }, [tokens, filterCategory, searchQuery]);
 
+  // Same guard as the colour grid: a scraped stylesheet can define thousands of custom properties,
+  // and one table row each is enough to bog the tab down. Table rows are lighter than swatch cards,
+  // so the ceiling is higher, and the overflow is stated rather than dropped.
+  const RENDER_CAP = 500;
+  const visibleTokens = useMemo(
+    () => (filteredTokens.length > RENDER_CAP ? filteredTokens.slice(0, RENDER_CAP) : filteredTokens),
+    [filteredTokens]
+  );
+  const hiddenTokenCount = filteredTokens.length - visibleTokens.length;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header */}
@@ -80,6 +90,16 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
         })}
       </div>
 
+      {hiddenTokenCount > 0 && (
+        <div className="mb-4 rounded-md border border-line bg-surface-inset px-4 py-2.5 text-xs text-content-secondary">
+          Showing the first{' '}
+          <span className="font-mono tabular-nums text-content-primary">{visibleTokens.length}</span> of{' '}
+          <span className="font-mono tabular-nums text-content-primary">{filteredTokens.length}</span> tokens.
+          Narrow the set with the search or category filter to reach the other{' '}
+          <span className="font-mono tabular-nums">{hiddenTokenCount}</span>.
+        </div>
+      )}
+
       {/* Tokens Table.
           Only the horizontal axis scrolls, and it does so on this wrapper alone - the
           ProvenancePopover escapes to a portal, so nothing here needs to clip it. */}
@@ -109,7 +129,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ tokens, onNavigateToSour
               </tr>
             </thead>
             <tbody className="divide-y divide-line-subtle font-mono">
-              {filteredTokens.map(token => (
+              {visibleTokens.map(token => (
                 <tr key={token.id} className="hover:bg-surface-overlay transition-colors">
                   <th scope="row" className="p-3.5 font-normal text-left">
                     <div className="flex items-center gap-2">
