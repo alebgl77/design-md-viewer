@@ -29,8 +29,12 @@ export interface DesignSystemHealthReport {
 /** A legitimate 10-step ramp reports every pair but must not drive the score to the floor alone. */
 const CONSISTENCY_PENALTY_CAP = 15;
 const DUPLICATE_PAIR_PENALTY = 5;
+const reportCache = new WeakMap<DesignSystem, DesignSystemHealthReport>();
 
 export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealthReport {
+  const cachedReport = reportCache.get(system);
+  if (cachedReport) return cachedReport;
+
   const issues: AuditIssue[] = [];
   let passedChecks = 0;
 
@@ -58,15 +62,14 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
 
   // 2. Near-Duplicate Color Detection (Orphan colors)
   const nearDuplicatePairs: { col1: ColorToken; col2: ColorToken; distance: number }[] = [];
+  const convertedPalette = palette.map(color => ({ color, rgb: hexToRgb(color.hex) }));
   let consistencyPenaltySpent = 0;
-  for (let i = 0; i < palette.length; i++) {
-    for (let j = i + 1; j < palette.length; j++) {
-      const c1 = palette[i];
-      const c2 = palette[j];
+  for (let i = 0; i < convertedPalette.length; i++) {
+    for (let j = i + 1; j < convertedPalette.length; j++) {
+      const { color: c1, rgb: rgb1 } = convertedPalette[i];
+      const { color: c2, rgb: rgb2 } = convertedPalette[j];
       if (c1.hex.toLowerCase() === c2.hex.toLowerCase()) continue;
 
-      const rgb1 = hexToRgb(c1.hex);
-      const rgb2 = hexToRgb(c2.hex);
       const distance = Math.sqrt(
         Math.pow(rgb1.r - rgb2.r, 2) + Math.pow(rgb1.g - rgb2.g, 2) + Math.pow(rgb1.b - rgb2.b, 2)
       );
@@ -223,7 +226,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
     summary = 'Requires attention. Several duplicate colors or off-grid values could be streamlined.';
   }
 
-  return {
+  const report: DesignSystemHealthReport = {
     score,
     grade,
     summary,
@@ -236,4 +239,7 @@ export function auditDesignSystemHealth(system: DesignSystem): DesignSystemHealt
       gridCompliancePercent,
     },
   };
+
+  reportCache.set(system, report);
+  return report;
 }
