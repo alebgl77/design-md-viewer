@@ -3,6 +3,8 @@ import { clsx } from 'clsx';
 import { DesignSystem } from './schema/designSystem';
 import { parseDesignDocument } from './parsers/pipeline';
 import { DropZone } from './components/common/DropZone';
+import { ImportSummary } from './components/common/ImportSummary';
+import { importSources, type ImportResult } from './importers';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { AppHeader } from './components/layout/AppHeader';
 import { DynamicSidebar } from './components/layout/DynamicSidebar';
@@ -117,6 +119,7 @@ export function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [highlightLine, setHighlightLine] = useState<number | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [importSummary, setImportSummary] = useState<Pick<ImportResult, 'sources' | 'warnings'> | null>(null);
 
   // Global Keyboard shortcuts (Cmd+K / Ctrl+K for search)
   useEffect(() => {
@@ -130,27 +133,33 @@ export function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [system]);
 
+  const handleImportComplete = (result: ImportResult) => {
+    setFileError(null);
+    try {
+      const parsed = parseDesignDocument(result.markdown, result.fileName);
+      setSystem(parsed);
+      setImportSummary({ sources: result.sources, warnings: result.warnings });
+      setActiveCategory('Overview');
+      setHighlightLine(null);
+    } catch (err: unknown) {
+      console.error('Parsing error: ', err);
+      setFileError(`Failed to parse source: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
   const handleFileLoaded = (rawContent: string, fileName: string) => {
     setFileError(null);
     try {
-      if (!rawContent || rawContent.trim().length === 0) {
-        setFileError(`The file "${fileName}" has no readable content.`);
-        return;
-      }
-
-      const parsed = parseDesignDocument(rawContent, fileName);
-      setSystem(parsed);
-      setActiveCategory('Overview');
-      setHighlightLine(null);
-    } catch (err: any) {
-      console.error('Parsing error: ', err);
-      setFileError(`Failed to parse file: ${err?.message || 'Unknown error'}`);
+      handleImportComplete(importSources([{ name: fileName, content: rawContent }]));
+    } catch (err: unknown) {
+      setFileError(`Failed to import source: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
   /** Back to the drop zone, with every transient piece of UI put away. */
   const handleUnloadSystem = () => {
     setSystem(null);
+    setImportSummary(null);
     setFileError(null);
     setActiveCategory('Overview');
     setHighlightLine(null);
@@ -276,81 +285,89 @@ export function App() {
             onReset={handleUnloadSystem}
           >
             {system ? (
-              <Suspense fallback={<ViewSkeleton />}>
-                {activeCategory === 'Overview' && (
-                  <OverviewView system={system} onNavigate={setActiveCategory} />
-                )}
+              <>
+                {importSummary && <ImportSummary result={importSummary} />}
+                <Suspense fallback={<ViewSkeleton />}>
+                  {activeCategory === 'Overview' && (
+                    <OverviewView system={system} onNavigate={setActiveCategory} />
+                  )}
 
-                {activeCategory === 'Colors' && (
-                  <ColorView colors={system.colors} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Colors' && (
+                    <ColorView colors={system.colors} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Typography' && (
-                  <TypographyView
-                    typography={system.typography}
-                    onNavigateToSource={handleNavigateToSource}
-                  />
-                )}
+                  {activeCategory === 'Typography' && (
+                    <TypographyView
+                      typography={system.typography}
+                      onNavigateToSource={handleNavigateToSource}
+                    />
+                  )}
 
-                {activeCategory === 'Spacing' && (
-                  <SpacingView spacing={system.spacing} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Spacing' && (
+                    <SpacingView spacing={system.spacing} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Radius' && (
-                  <RadiusView radii={system.radii} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Radius' && (
+                    <RadiusView radii={system.radii} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Shadows' && (
-                  <ShadowsView shadows={system.shadows} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Shadows' && (
+                    <ShadowsView shadows={system.shadows} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Borders' && (
-                  <BordersView borders={system.borders} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Borders' && (
+                    <BordersView borders={system.borders} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Breakpoints' && (
-                  <BreakpointsView
-                    breakpoints={system.breakpoints}
-                    onNavigateToSource={handleNavigateToSource}
-                  />
-                )}
+                  {activeCategory === 'Breakpoints' && (
+                    <BreakpointsView
+                      breakpoints={system.breakpoints}
+                      onNavigateToSource={handleNavigateToSource}
+                    />
+                  )}
 
-                {activeCategory === 'Components' && (
-                  <ComponentsView
-                    components={system.components}
-                    onNavigateToSource={handleNavigateToSource}
-                  />
-                )}
+                  {activeCategory === 'Components' && (
+                    <ComponentsView
+                      components={system.components}
+                      onNavigateToSource={handleNavigateToSource}
+                    />
+                  )}
 
-                {activeCategory === 'Motion' && (
-                  <MotionView motion={system.motion} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Motion' && (
+                    <MotionView motion={system.motion} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Accessibility' && (
-                  <AccessibilityView
-                    accessibility={system.accessibility}
-                    onNavigateToSource={handleNavigateToSource}
-                  />
-                )}
+                  {activeCategory === 'Accessibility' && (
+                    <AccessibilityView
+                      accessibility={system.accessibility}
+                      onNavigateToSource={handleNavigateToSource}
+                    />
+                  )}
 
-                {activeCategory === 'Tokens' && (
-                  <TokensView tokens={system.tokens} onNavigateToSource={handleNavigateToSource} />
-                )}
+                  {activeCategory === 'Tokens' && (
+                    <TokensView tokens={system.tokens} onNavigateToSource={handleNavigateToSource} />
+                  )}
 
-                {activeCategory === 'Audit' && (
-                  <HealthAuditView system={system} onNavigateToCategory={setActiveCategory} />
-                )}
+                  {activeCategory === 'Audit' && (
+                    <HealthAuditView system={system} onNavigateToCategory={setActiveCategory} />
+                  )}
 
-                {activeCategory === 'Source' && (
-                  <SourceView
-                    rawContent={system.rawContent}
-                    sections={system.rawSections}
-                    highlightLine={highlightLine}
-                  />
-                )}
-              </Suspense>
+                  {activeCategory === 'Source' && (
+                    <SourceView
+                      rawContent={system.rawContent}
+                      sections={system.rawSections}
+                      highlightLine={highlightLine}
+                    />
+                  )}
+                </Suspense>
+              </>
             ) : (
-              <DropZone onFileLoaded={handleFileLoaded} error={fileError} />
+              <DropZone
+                onFileLoaded={handleFileLoaded}
+                onImportComplete={handleImportComplete}
+                onImportStart={() => setFileError(null)}
+                error={fileError}
+              />
             )}
           </ErrorBoundary>
         </main>

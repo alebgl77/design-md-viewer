@@ -62,14 +62,16 @@ export function extractBorders(structure: ParsedMarkdownStructure): BorderToken[
   // Extract from Tables
   for (const table of structure.tables) {
     const isBorderTable =
-      table.headingPath.some(h => /border|stroke|divider/i.test(h)) ||
-      table.headers.some(h => /border|stroke|width/i.test(h));
+      !table.headingPath.some(h => /radius|radii|corner/i.test(h)) &&
+      (table.headingPath.some(h => /border|stroke|divider/i.test(h)) ||
+        table.headers.some(h => /border|stroke/i.test(h)));
 
     if (isBorderTable) {
       const nameIdx = table.headers.findIndex(h => /name|token|key|type/i.test(h));
       const widthIdx = table.headers.findIndex(h => /width|size|px/i.test(h));
       const styleIdx = table.headers.findIndex(h => /style|type/i.test(h));
       const colorIdx = table.headers.findIndex(h => /color|hex/i.test(h));
+      const roleIdx = table.headers.findIndex(h => /role|usage|description/i.test(h));
 
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
@@ -89,7 +91,8 @@ export function extractBorders(structure: ParsedMarkdownStructure): BorderToken[
               headingPath: table.headingPath,
               lineNumber: rowLine,
               rawSourceSnippet: `| ${row.join(' | ')} |`,
-            }
+            },
+            roleIdx !== -1 ? row[roleIdx] || undefined : undefined
           );
         }
       });

@@ -77,7 +77,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, syste
       break;
     case 'markdown':
       exportContent = exportToNormalizedMarkdown(system);
-      fileName = `${baseName}-normalized.md`;
+      fileName = 'DESIGN.md';
       mimeType = 'text/markdown';
       break;
   }

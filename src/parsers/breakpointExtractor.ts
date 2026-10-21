@@ -48,7 +48,7 @@ export function extractBreakpoints(structure: ParsedMarkdownStructure): Breakpoi
   for (const table of structure.tables) {
     const isBpTable =
       table.headingPath.some(h => /breakpoint|responsive|screen|device|media/i.test(h)) ||
-      table.headers.some(h => /breakpoint|screen|min-width|width|device/i.test(h));
+      table.headers.some(h => /breakpoint|screen|min[- ]width|max[- ]width|device/i.test(h));
 
     if (isBpTable) {
       const nameIdx = table.headers.findIndex(h => /name|device|screen|token|key/i.test(h));

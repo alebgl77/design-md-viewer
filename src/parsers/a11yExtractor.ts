@@ -37,6 +37,24 @@ export function extractAccessibility(structure: ParsedMarkdownStructure): A11yRu
         const itemMatch = trimmed.match(/^[-*+]\s+(.+)$/);
         if (itemMatch) {
           const itemText = itemMatch[1];
+          const normalizedRule = itemText.match(
+            /^\*\*(.*?)\*\* \((contrast|focus|target-size|keyboard|motion|aria|general)(?:, WCAG (AAA|AA|A))?\): (.*)$/
+          );
+          if (normalizedRule) {
+            addRule(
+              normalizedRule[1],
+              normalizedRule[4],
+              normalizedRule[2] as A11yRule['category'],
+              {
+                sectionTitle: section.heading,
+                headingPath: [section.heading],
+                lineNumber: section.lineNumber + idx + 1,
+                rawSourceSnippet: trimmed,
+              },
+              normalizedRule[3] as A11yRule['wcagLevel']
+            );
+            return;
+          }
           const parts = itemText.split(/[:—–-]/);
           const title = parts[0];
           const desc = parts.slice(1).join(':') || itemText;

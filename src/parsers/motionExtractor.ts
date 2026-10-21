@@ -74,19 +74,21 @@ export function extractMotion(structure: ParsedMarkdownStructure): MotionToken[]
       const durIdx = table.headers.findIndex(h => /duration|time|speed|ms/i.test(h));
       const easeIdx = table.headers.findIndex(h => /easing|curve|timing/i.test(h));
       const usageIdx = table.headers.findIndex(h => /usage|role|example|desc/i.test(h));
+      const transitionIdx = table.headers.findIndex(h => /transition/i.test(h));
 
       table.rows.forEach((row, rowIdx) => {
         const nameVal = nameIdx !== -1 ? row[nameIdx] : row[0];
         const durVal = durIdx !== -1 ? row[durIdx] : row.find(c => /\d+(?:ms|s)/i.test(c));
         const easeVal = easeIdx !== -1 ? row[easeIdx] : row.find(c => /ease|linear|cubic/i.test(c));
         const usageVal = usageIdx !== -1 ? row[usageIdx] : undefined;
+        const transitionVal = transitionIdx !== -1 ? row[transitionIdx] : undefined;
 
-        if (nameVal && (durVal || easeVal)) {
+        if (nameVal && (durVal || easeVal || transitionVal)) {
           addMotion(
             nameVal.replace(/[`*]/g, '').trim(),
-            durVal?.replace(/[`*]/g, '').trim(),
-            easeVal?.replace(/[`*]/g, '').trim(),
-            undefined,
+            durVal?.replace(/[`*]/g, '').trim() || undefined,
+            easeVal?.replace(/[`*]/g, '').trim() || undefined,
+            transitionVal?.replace(/[`*]/g, '').trim() || undefined,
             {
               sectionTitle: table.headingPath[table.headingPath.length - 1],
               headingPath: table.headingPath,

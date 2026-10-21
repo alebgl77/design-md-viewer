@@ -41,9 +41,28 @@ const KNOWN_COMPONENT_NAMES = [
   'popover',
 ];
 
+function plainInlineText(value: string): string {
+  return value
+    .replace(/\\([\\`*_{}[\]<>#|~])|([*_`])/g, (_match, escaped: string | undefined) => escaped || '')
+    .trim();
+}
+
 export function extractComponents(structure: ParsedMarkdownStructure): ComponentSpec[] {
   const components: ComponentSpec[] = [];
   const seenNames = new Set<string>();
+  const ancestors: ParsedMarkdownStructure['sections'] = [];
+  const subtreeEndIndices = new Array<number>(structure.sections.length).fill(structure.sections.length);
+  const openSections: number[] = [];
+  structure.sections.forEach((section, index) => {
+    while (
+      openSections.length &&
+      structure.sections[openSections[openSections.length - 1]].level >= section.level
+    ) {
+      subtreeEndIndices[openSections.pop()!] = index;
+    }
+    openSections.push(index);
+  });
+  let codeBlockIndex = 0;
 
   // Helper to map component name to preview type
   function determinePreviewType(name: string): ComponentSpec['previewType'] {
@@ -75,9 +94,8 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
     const start = structure.sections[startIndex];
     const lines = start.content.split('\n');
 
-    for (let i = startIndex + 1; i < structure.sections.length; i++) {
+    for (let i = startIndex + 1; i < subtreeEndIndices[startIndex]; i++) {
       const next = structure.sections[i];
-      if (next.level <= start.level) break;
       lines.push(`${'#'.repeat(next.level)} ${next.heading}`, ...next.content.split('\n'));
     }
 
@@ -87,20 +105,35 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
   // 1. Scan sections where heading or parent is in components area or matches known component
   for (let sectionIndex = 0; sectionIndex < structure.sections.length; sectionIndex++) {
     const section = structure.sections[sectionIndex];
+    while (
+      codeBlockIndex < structure.codeBlocks.length &&
+      structure.codeBlocks[codeBlockIndex].startLine < section.lineNumber
+    )
+      codeBlockIndex++;
+    while (ancestors.length && ancestors[ancestors.length - 1].level >= section.level) ancestors.pop();
+    const parent = ancestors[ancestors.length - 1];
+    ancestors.push(section);
+    const isDirectChild =
+      !!parent &&
+      /^(?:components|ui elements|widgets)$/i.test(parent.heading) &&
+      !/^(?:components|ui elements|widgets)$/i.test(section.heading);
     const isUnderComponents =
+      isDirectChild ||
       section.heading.toLowerCase().includes('component') ||
       KNOWN_COMPONENT_NAMES.some(k => section.heading.toLowerCase().includes(k));
 
     if (!isUnderComponents) continue;
 
     // Check if section itself is a component (e.g. ## Button or ### Card)
-    const isActualComponent = KNOWN_COMPONENT_NAMES.some(k => {
-      const h = section.heading.toLowerCase();
-      return h === k || h.startsWith(`${k} `) || h.endsWith(` ${k}`) || h.includes(`${k}s`);
-    });
+    const isActualComponent =
+      isDirectChild ||
+      KNOWN_COMPONENT_NAMES.some(k => {
+        const h = section.heading.toLowerCase();
+        return h === k || h.startsWith(`${k} `) || h.endsWith(` ${k}`) || h.includes(`${k}s`);
+      });
 
     if (isActualComponent) {
-      const compName = section.heading.replace(/^component:\s*/i, '').trim();
+      const compName = plainInlineText(section.heading.replace(/^component:\s*/i, ''));
       if (seenNames.has(compName.toLowerCase())) continue;
       seenNames.add(compName.toLowerCase());
 
@@ -127,54 +160,41 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
           return;
         }
 
-        // Detect description from first regular paragraph
-        if (
-          !description &&
-          !trimmed.startsWith('#') &&
-          !trimmed.startsWith('-') &&
-          !trimmed.startsWith('|') &&
-          !trimmed.startsWith('`')
-        ) {
-          description = trimmed;
-          return;
-        }
-
         // List item parsing
         const itemMatch = trimmed.match(/^[-*+]\s+(.+)$/);
         if (itemMatch) {
           const itemText = itemMatch[1].trim();
-
-          if (currentSubHeader.includes('variant') || /variant/i.test(itemText)) {
-            const vName = itemText
-              .split(/[:—–-]/)[0]
-              .replace(/[*_`]/g, '')
-              .trim();
-            const vDesc = itemText.includes(':') ? itemText.split(':')[1].trim() : undefined;
-            variants.push({ name: vName, description: vDesc });
-          } else if (
-            currentSubHeader.includes('state') ||
-            /hover|focus|active|disabled|loading/i.test(itemText)
-          ) {
-            states.push(itemText.replace(/[*_`]/g, '').trim());
-          } else if (
-            currentSubHeader.includes('size') ||
-            /\b(sm|md|lg|xl|small|medium|large)\b/i.test(itemText)
-          ) {
-            sizes.push(itemText.replace(/[*_`]/g, '').trim());
-          } else if (
-            currentSubHeader.includes('token') ||
-            itemText.includes('--') ||
-            itemText.includes('$')
-          ) {
-            const tokenMatch = itemText.match(/(--[a-zA-Z0-9_-]+|\$[a-zA-Z0-9_-]+)/g);
-            if (tokenMatch) tokensUsed.push(...tokenMatch);
-          } else if (currentSubHeader.includes('anatomy') || currentSubHeader.includes('structure')) {
-            anatomy.push(itemText.replace(/[*_`]/g, '').trim());
-          } else if (currentSubHeader.includes('access') || currentSubHeader.includes('a11y')) {
-            a11yNotes.push(itemText);
-          } else if (currentSubHeader.includes('behavior') || currentSubHeader.includes('usage')) {
-            behaviorNotes.push(itemText);
+          const text = plainInlineText(itemText);
+          // An authored subsection wins over keyword guesses: "small icon" is
+          // anatomy under Anatomy and "focus ring" is a note under Accessibility.
+          let kind = currentSubHeader;
+          if (!kind) {
+            if (/variant/i.test(itemText)) kind = 'variants';
+            else if (/hover|focus|active|disabled|loading/i.test(itemText)) kind = 'states';
+            else if (/\b(sm|md|lg|xl|small|medium|large)\b/i.test(itemText)) kind = 'sizes';
+            else if (/--|\$/.test(itemText)) kind = 'tokens';
           }
+          if (kind.includes('variant')) {
+            const parts =
+              itemText.match(/^\*\*(.*?)\*\*(?::\s*(.*))?$/) ||
+              itemText.match(/^([^:—–]+)(?:[:—–]\s*(.*))?$/);
+            if (parts)
+              variants.push({
+                name: plainInlineText(parts[1]),
+                description: parts[2] ? plainInlineText(parts[2]) : undefined,
+              });
+          } else if (kind.includes('state')) states.push(text);
+          else if (kind.includes('size')) sizes.push(text);
+          else if (kind.includes('token'))
+            tokensUsed.push(...(text.match(/--[a-zA-Z0-9_-]+|\$[a-zA-Z0-9_-]+/g) || [text]));
+          else if (kind.includes('anatomy') || kind.includes('structure')) anatomy.push(text);
+          else if (kind.includes('access') || kind.includes('a11y')) a11yNotes.push(text);
+          else if (kind.includes('behavior') || kind.includes('usage')) behaviorNotes.push(text);
+          return;
+        }
+
+        if (!description && !currentSubHeader && !/^[#|`~]/.test(trimmed)) {
+          description = plainInlineText(trimmed);
         }
       });
 
@@ -208,9 +228,10 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
       }
 
       // Find code example in code blocks inside this section's line range
-      const blockInSec = structure.codeBlocks.find(
-        b => b.startLine >= section.lineNumber && b.endLine <= section.lineEnd
-      );
+      const nextPeer = structure.sections[subtreeEndIndices[sectionIndex]];
+      const subtreeEnd = nextPeer ? nextPeer.lineNumber - 1 : structure.rawLines.length;
+      const nextBlock = structure.codeBlocks[codeBlockIndex];
+      const blockInSec = nextBlock && nextBlock.endLine <= subtreeEnd ? nextBlock : undefined;
 
       components.push({
         id: `cmp-${components.length + 1}-${compName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
@@ -229,7 +250,7 @@ export function extractComponents(structure: ParsedMarkdownStructure): Component
           sectionTitle: section.heading,
           headingPath: [section.heading],
           lineNumber: section.lineNumber,
-          lineEnd: section.lineEnd,
+          lineEnd: subtreeEnd,
           rawSourceSnippet: section.content.slice(0, 300),
         },
         confidence: 'explicit',
