@@ -286,13 +286,23 @@ npm run build   # type-check and emit static files to dist/
 
 The build emits relative asset URLs, so `dist/` works from a domain root or any subdirectory.
 
-To reproduce the screenshots and browser smoke checks, install Playwright with
-`npm install --no-save --package-lock=false playwright@1.62.1`, then
-`npx playwright install chromium`, as the [screenshot workflow](.github/workflows/screenshots.yml) does. Serve the build with
-`npm run preview -- --port 4173`, then run `node scripts/capture-screenshots.mjs`. The script writes to
-`shots/` by default; `BASE_URL`, `OUTPUT_DIR`, and optional `BROWSER_EXECUTABLE` override the target,
-output directory, and headless Chromium executable. It covers file/paste imports, raster/PDF decoding,
-warnings, source/search navigation, export, and mobile layouts as well as the original views.
+To reproduce the screenshots and browser smoke checks, build the app and serve it with
+`npm run preview -- --port 4173`. In another terminal, install Playwright into a temporary directory
+outside the checkout. This keeps the app's package files and installed dependencies unchanged, as the
+[screenshot workflow](.github/workflows/screenshots.yml) does. From the checkout, in a POSIX shell:
+
+```sh
+SCREENSHOT_TOOLS="$(mktemp -d)"
+npm install --prefix "$SCREENSHOT_TOOLS" --no-save --package-lock=false --ignore-scripts playwright@1.62.1
+node "$SCREENSHOT_TOOLS/node_modules/playwright/cli.js" install chromium
+NODE_PATH="$SCREENSHOT_TOOLS/node_modules" node scripts/capture-screenshots.mjs
+```
+
+`NODE_PATH` lets the capture script load that isolated Playwright installation. On Ubuntu, the workflow
+uses the same installed CLI with `install --with-deps chromium` to include system libraries. The script
+writes to `shots/` by default; `BASE_URL`, `OUTPUT_DIR`, and optional `BROWSER_EXECUTABLE` override the
+target, output directory, and headless Chromium executable. It covers file/paste imports, raster/PDF
+decoding, warnings, source/search navigation, export, and mobile layouts as well as the original views.
 
 ## Tech stack
 

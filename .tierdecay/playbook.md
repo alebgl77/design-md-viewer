@@ -12,10 +12,6 @@ DO: Escape cells and inline text; fence code examples above their longest marker
 DO: Let explicit component subsections win over keyword guesses and traverse ancestry without prefix copies.
 VERIFY: Parse → export → parse asserts values/categories, alias resolution, no fabricated breakpoints and hostile Markdown structure.
 
-## QUARANTINE
-
-None.
-
 ### PB-2 · add-local-source-imports
 
 provenance: T2 2026-10 · hits: 0
@@ -34,3 +30,7 @@ DO: Enforce depth, work and projected UTF-8 expansion budgets at the shared reso
 DO: Keep budgets per root, include cached substitutions and repeated references, and retain the original definition on exhaustion.
 DO: Stage caches until the entire root succeeds; treat replacement dollar sequences as literal source data.
 VERIFY: Alternating-file branching, deep/wide references, UTF-8 boundaries, cache isolation and existing exact cycle semantics; require critical review.
+
+## QUARANTINE
+
+None.
