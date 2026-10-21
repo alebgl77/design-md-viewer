@@ -122,8 +122,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <button
           type="button"
           onClick={onReplaceFile}
-          title="Replace with another design.md"
-          aria-label="Replace with another design.md"
+          title="Import other sources"
+          aria-label="Import other sources"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-surface-raised hover:bg-surface-overlay border border-line hover:border-accent/30 text-xs font-medium text-content-muted hover:text-content-secondary transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />

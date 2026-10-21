@@ -52,6 +52,8 @@ export function parseMarkdownStructure(rawMarkdown: string): ParsedMarkdownStruc
   let codeBlockLang = '';
   let codeBlockLines: string[] = [];
   let codeBlockStart = 0;
+  let codeBlockMarker = '';
+  let codeBlockFenceLength = 0;
 
   let inTable = false;
   let tableHeaders: string[] = [];
@@ -68,11 +70,20 @@ export function parseMarkdownStructure(rawMarkdown: string): ParsedMarkdownStruc
     const trimmed = line.trim();
 
     // 1. Code block handling
-    if (trimmed.startsWith('```')) {
+    const fenceMatch = trimmed.match(/^(`{3,}|~{3,})(.*)$/);
+    if (
+      fenceMatch &&
+      (!inCodeBlock ||
+        (fenceMatch[1][0] === codeBlockMarker &&
+          fenceMatch[1].length >= codeBlockFenceLength &&
+          !fenceMatch[2].trim()))
+    ) {
       if (!inCodeBlock) {
         // Start of code block
         inCodeBlock = true;
-        codeBlockLang = trimmed.replace(/^```/, '').trim().toLowerCase();
+        codeBlockLang = fenceMatch[2].trim().toLowerCase();
+        codeBlockMarker = fenceMatch[1][0];
+        codeBlockFenceLength = fenceMatch[1].length;
         codeBlockLines = [];
         codeBlockStart = lineNumber;
       } else {
@@ -96,10 +107,22 @@ export function parseMarkdownStructure(rawMarkdown: string): ParsedMarkdownStruc
 
     // 2. Table handling
     if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-      const cells = trimmed
-        .slice(1, -1)
-        .split('|')
-        .map(c => c.trim());
+      // A backslash escapes a pipe or another backslash; escaped pipes stay in
+      // their cell instead of shifting every column that follows them.
+      const cells: string[] = [];
+      let cell = '';
+      const body = trimmed.slice(1, -1);
+      for (let j = 0; j < body.length; j++) {
+        if (body[j] === '\\' && (body[j + 1] === '|' || body[j + 1] === '\\')) {
+          cell += body[++j];
+        } else if (body[j] === '|') {
+          cells.push(cell.trim());
+          cell = '';
+        } else {
+          cell += body[j];
+        }
+      }
+      cells.push(cell.trim());
 
       // Check if separator line (| --- | --- |)
       const isSeparator = cells.every(c => /^:?-+:?$/.test(c));

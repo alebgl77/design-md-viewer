@@ -13,9 +13,9 @@
 
 # Design.md Visual Explorer
 
-**Drop a design-system markdown file into the browser. Get a navigable, audited, exportable design system back.**
+**Bring local design sources together. Generate a DESIGN.md, explore its tokens, audit them, and export the result.**
 
-No schema to adopt. No front matter. No backend. Nothing leaves your machine.
+Markdown, CSS, JSON, HTML, SVG, image palettes, and PDF text. No backend; imports stay in your browser.
 
 [**Try it →**](https://alebgl77.github.io/design-md-viewer/)
 
@@ -45,13 +45,13 @@ sounds like a detail until you realise the alternative silently passes everythin
 version scored each colour against the friendlier of two fixed backgrounds, so the audit could
 never fail. `#0e3a2a` at 1.52:1 is a real finding about a real palette.
 
-### Every value points back at the line that declared it
+### Every value points back at its source line
 
 <img src="docs/screenshots/source-dark.png" alt="The source inspector: the document outline with line numbers on the left, the raw markdown on the right.">
 
-Provenance is a required field in the schema, so an extractor _cannot_ emit a value it is unable to
-point at. When the parser gets something wrong - and on a document it has never seen, it sometimes
-will - you can see why in one click instead of trusting it.
+Provenance records the text behind each extracted value. A single Markdown import keeps its original
+lines; other formats and batches point into the generated Markdown, with source names and import notes.
+When extraction gets something wrong, you can inspect that text in one click.
 
 ### The palette, with the parts that fail marked as failing
 
@@ -125,24 +125,61 @@ And you certainly cannot hand it to Tailwind.
 
 This closes that gap without asking the document to change.
 
+## Import files or paste content
+
+Drop several local files together, choose them with the file picker, or paste content and select its
+format. Imports use deterministic adapters, with no AI call or upload. The four samples and starter
+scaffolder still work without a file.
+
+| Source                           | What is inspected                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `.md`, `.markdown`, `.txt`       | Markdown and design notes; clear code in `.txt` can be detected as CSS, JSON, HTML, or SVG        |
+| `.css`                           | Static design declarations and custom properties                                                  |
+| `.json`                          | Flat/nested tokens, legacy `type`/`value`, and supported DTCG `$type`/`$value` tokens and aliases |
+| `.html`, `.htm`, `.svg`          | Embedded/inline styles and static SVG paint; no page rendering or linked resources                |
+| `.png`, `.jpg`, `.jpeg`, `.webp` | Quantized pixel palette only; static WebP, no OCR or font/layout inference                        |
+| `.pdf`                           | Embedded selectable text from the first 25 pages; no OCR or visual analysis                       |
+
+Each batch accepts **20 files and 20 MiB total**. Text files are limited to **2 MiB** each; images and
+PDFs to **10 MiB** each. Images also have dimension limits. Invalid sources are reported; valid files in
+the same batch can still load. Office documents, video, archives, and remote URL imports are unsupported.
+
+The source summary keeps limitations and warnings visible. Conflicting declarations are retained in the
+generated source with a warning; this is not automatic conflict resolution. Source links refer to that
+generated document, not original CSS/JSON/PDF locations. Component previews illustrate extracted data
+using the app's controls; they do not reproduce a source interface pixel for pixel.
+
+<img src="docs/screenshots/import-batch.png" alt="A four-file CSS, JSON, SVG, and HTML import with every source named, extraction notes expanded, and the generated color palette below.">
+
+The same flow works on narrow screens: [390 px light-theme capture](docs/screenshots/import-mobile.png).
+
+Use **Export → Normalized DESIGN.md → Download File** to save the parsed system. This preserves supported
+structured semantics, not original formatting or every source detail. Review the result before adopting it.
+See [Importing sources](docs/IMPORTING.md) for examples, exact bounds, and adapter development, and the
+[roadmap](docs/ROADMAP.md) for planned work.
+
 ## 100% client-side
 
-The file you load is parsed in your browser and never leaves it.
+The sources you import are processed in your browser and are not uploaded. Source files are held only
+for the current import; the app does not persist them.
 
 - No backend, no server, no database. The whole app is static files.
 - No upload endpoint, no analytics, no telemetry, no cookies.
-- The only network requests the app makes are the webfont stylesheet, and - if you explicitly opt in - the
-  AI enrichment call described below.
+- The app fetches its own assets (including a bundled PDF worker) and webfonts. AI enrichment makes a
+  separate request only if you explicitly opt in, as described below.
 
 It runs perfectly well from an internal share or any static host.
 
 ## How the parser works
 
-Deterministic by design: the same document always produces the same object, with no model in the loop.
+Deterministic extraction rules, with no model in the import or parsing loop. Image palettes depend on
+the browser's decoded pixels; they are samples, not declared tokens.
 
 ```mermaid
 flowchart LR
-  MD["design.md<br/>untrusted text"] --> TOK["tokenizer<br/>markdownStructure.ts"]
+  INPUT["local files / pasted content"] --> ADAPT["bounded format adapters<br/>src/importers"]
+  ADAPT --> MD["Markdown + source notes"]
+  MD --> TOK["tokenizer<br/>markdownStructure.ts"]
   TOK --> IDX["structural index<br/>sections · tables · code blocks · list items<br/>each with its line range"]
   IDX --> EX["11 extractors<br/>colors · type · spacing · motion · …"]
   IDX --> RR["reference resolver<br/>dereferences var(--x)<br/>cycle-safe"]
@@ -193,6 +230,8 @@ silently blended.
 
 ## Features
 
+- **Batch and paste imports** - local text, code, tokens, image palettes, and PDF text, with source
+  summaries and explicit extraction limits.
 - **Fourteen views** - Overview, Colors, Typography, Spacing, Radius, Shadows, Borders, Breakpoints,
   Components, Motion, Accessibility, Tokens, Health Audit, Source. Only detected categories appear.
 - **Health audit** - a scored report (A+ to D) covering WCAG AA contrast failures, near-duplicate colors,
@@ -211,7 +250,8 @@ silently blended.
 
 ## Untrusted input is treated as untrusted
 
-A `design.md` is a file teams pass around and that agents generate. This project assumes it may be hostile.
+Source files may be hostile. Adapters inspect data without executing HTML, SVG, CSS, or PDF scripts,
+fetching linked resources, or inserting source markup into the page.
 
 - Script tags and `javascript:` URLs are stripped before parsing, newline-for-newline so line numbers stay
   honest.
@@ -221,13 +261,14 @@ A `design.md` is a file teams pass around and that agents generate. This project
 - Prompt-injection text inside a document stays inert data. There is a test for exactly that.
 - A Content Security Policy ships in the document itself, since GitHub Pages serves no headers this
   project controls. Scripts are pinned to first-party code plus one hashed inline bootstrap, and the
-  page can reach exactly one external origin.
+  PDF workers come from the app's own origin. The only external API origin allowed is Gemini; fonts
+  use Google's stylesheet and font hosts.
 
 The threat model and how to report an issue are in [SECURITY.md](SECURITY.md).
 
 ## Quickstart
 
-Requires Node 20 or newer.
+Requires Node 22.13.0 or newer.
 
 ```bash
 git clone https://github.com/alebgl77/design-md-viewer.git
@@ -236,12 +277,22 @@ cd design-md-viewer
 npm install     # install dependencies
 npm run dev     # dev server on http://localhost:5173
 npm test        # Vitest suite
+npm run lint   # ESLint
+npm run format:check # Prettier check
 npm run build   # type-check and emit static files to dist/
 ```
 
 `npm run typecheck` runs `tsc --noEmit` alone; `npm run preview` serves the built `dist/`.
 
 The build emits relative asset URLs, so `dist/` works from a domain root or any subdirectory.
+
+To reproduce the screenshots and browser smoke checks, install Playwright with
+`npm install --no-save --package-lock=false playwright@1.62.1`, then
+`npx playwright install chromium`, as the [screenshot workflow](.github/workflows/screenshots.yml) does. Serve the build with
+`npm run preview -- --port 4173`, then run `node scripts/capture-screenshots.mjs`. The script writes to
+`shots/` by default; `BASE_URL`, `OUTPUT_DIR`, and optional `BROWSER_EXECUTABLE` override the target,
+output directory, and headless Chromium executable. It covers file/paste imports, raster/PDF decoding,
+warnings, source/search navigation, export, and mobile layouts as well as the original views.
 
 ## Tech stack
 

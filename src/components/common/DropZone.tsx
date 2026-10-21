@@ -10,6 +10,8 @@ import {
   Download,
   Check,
   X,
+  LoaderCircle,
+  ClipboardPaste,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import {
@@ -21,31 +23,29 @@ import {
 import { copyToClipboard } from '../../utils/clipboard';
 import { Modal } from './Modal';
 import { AnimatedLogo } from './AnimatedLogo';
+import { ACCEPTED_SOURCE_EXTENSIONS, importFiles, importSources, type ImportResult } from '../../importers';
+import { createPastedSource, PASTE_FORMATS, type PasteFormat } from './importPresentation';
 
 const SCAFFOLD_TITLE_ID = 'scaffold-modal-title';
 
-/**
- * Upper bound on an accepted file, in bytes.
- *
- * Parsing is synchronous and runs on the main thread, so an oversized upload
- * freezes the tab with no feedback at all. A design specification is prose plus
- * token tables; the largest fixture here is a few dozen KB, so 2 MB is roughly
- * two orders of magnitude of headroom and still well inside what the parser
- * handles instantly.
- */
-const MAX_FILE_BYTES = 2 * 1024 * 1024;
-
-function formatMegabytes(bytes: number): string {
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 interface DropZoneProps {
   onFileLoaded: (content: string, fileName: string) => void;
+  onImportComplete: (result: ImportResult) => void;
+  onImportStart: () => void;
   error?: string | null;
 }
 
-export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externalError }) => {
+export const DropZone: React.FC<DropZoneProps> = ({
+  onFileLoaded,
+  onImportComplete,
+  onImportStart,
+  error: externalError,
+}) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [pastedContent, setPastedContent] = useState('');
+  const [sourceName, setSourceName] = useState('');
+  const [pasteFormat, setPasteFormat] = useState<PasteFormat>('md');
   const [localError, setLocalError] = useState<string | null>(null);
   const [isScaffoldModalOpen, setIsScaffoldModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<'scraped' | 'mobile' | 'minimal' | 'cyberpunk'>(
@@ -53,46 +53,45 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
   );
   const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importInProgress = useRef(false);
 
   const error = externalError || localError;
 
-  const handleFileProcess = (file: File) => {
+  const runImport = async (readSources: () => Promise<ImportResult>) => {
+    if (importInProgress.current) return;
+    importInProgress.current = true;
+    setIsImporting(true);
     setLocalError(null);
-    if (
-      !file.name.toLowerCase().endsWith('.md') &&
-      !file.name.toLowerCase().endsWith('.markdown') &&
-      !file.name.toLowerCase().endsWith('.txt')
-    ) {
-      setLocalError(`Invalid file format "${file.name}". Please drop a Markdown file (.md).`);
-      return;
+    onImportStart();
+    try {
+      const result = await readSources();
+      onImportComplete(result);
+    } catch (err: unknown) {
+      setLocalError(err instanceof Error ? err.message : 'Could not read these sources. Please try again.');
+    } finally {
+      importInProgress.current = false;
+      setIsImporting(false);
     }
+  };
 
-    if (file.size > MAX_FILE_BYTES) {
-      setLocalError(
-        `The file "${file.name}" is ${formatMegabytes(file.size)}, over the ${formatMegabytes(MAX_FILE_BYTES)} limit. Please load a smaller design.md file.`
-      );
-      return;
-    }
+  const handleFileProcess = (files: File[]) => {
+    if (files.length > 0) void runImport(() => importFiles(files));
+  };
 
-    const reader = new FileReader();
-    reader.onload = e => {
-      const content = e.target?.result as string;
-      if (!content || content.trim().length === 0) {
-        setLocalError(`The file "${file.name}" is completely empty. Please load a valid design.md file.`);
-        return;
-      }
-      onFileLoaded(content, file.name);
-    };
-    reader.onerror = () => {
-      setLocalError(`Failed to read "${file.name}". Please try another file.`);
-    };
-    reader.readAsText(file);
+  const handlePasteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void runImport(async () => {
+      const source = createPastedSource(pastedContent, sourceName, pasteFormat);
+      // Let the loading state paint before the synchronous text import begins.
+      await new Promise<void>(resolve => window.setTimeout(resolve, 0));
+      return importSources([source]);
+    });
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    if (!importInProgress.current) setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -107,21 +106,26 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileProcess(e.dataTransfer.files[0]);
+      handleFileProcess(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      handleFileProcess(e.target.files[0]);
+      handleFileProcess(Array.from(e.target.files));
     }
+    e.target.value = '';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (!importInProgress.current && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
       fileInputRef.current?.click();
     }
+  };
+
+  const handleExampleLoaded = (content: string, fileName: string) => {
+    if (!importInProgress.current) onFileLoaded(content, fileName);
   };
 
   const getTemplateContent = () => {
@@ -145,7 +149,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
   ];
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-12 sm:py-16 flex flex-col items-center justify-center animate-in fade-in duration-300">
+    <div className="w-full max-w-5xl mx-auto py-6 sm:py-10 flex flex-col items-center justify-center animate-in fade-in duration-300">
       {/* Brand Header */}
       <div className="text-center max-w-2xl mb-8">
         {/*
@@ -164,67 +168,179 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
           Design.md <span className="text-accent">Visual Explorer</span>
         </h1>
         <p className="text-content-secondary text-base sm:text-lg leading-relaxed font-normal">
-          Transform your raw{' '}
+          Turn local files or pasted content into a structured{' '}
           <code className="text-accent bg-surface-overlay border border-line px-2 py-0.5 rounded-sm font-mono text-sm">
             design.md
           </code>{' '}
-          into an interactive, structured, and immediately exploitable design system.
+          you can explore, review, and export.
         </p>
       </div>
 
-      {/* Main Drop Area */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Drop your design.md file here or click to browse"
-        onClick={() => fileInputRef.current?.click()}
-        onKeyDown={handleKeyDown}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={clsx(
-          'w-full relative rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden p-8 sm:p-14 text-center focus:ring-4 focus:ring-accent/20',
-          isDragging
-            ? 'border-accent bg-accent/10 scale-[1.01] shadow-chromatic-glow'
-            : 'border-line hover:border-accent/50 bg-surface-raised hover:bg-accent/5 shadow-chromatic'
-        )}
-      >
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
         <input
           type="file"
+          aria-label="Choose source files"
           ref={fileInputRef}
           onChange={handleInputChange}
-          accept=".md,.markdown,.txt"
+          accept={ACCEPTED_SOURCE_EXTENSIONS}
+          multiple
+          disabled={isImporting}
           className="hidden"
         />
-
-        <div className="flex flex-col items-center justify-center pointer-events-none">
-          <div
-            className={clsx(
-              'w-16 h-16 rounded-lg flex items-center justify-center mb-5 transition-transform duration-200',
-              isDragging
-                ? 'scale-110 bg-accent text-accent-contrast'
-                : 'bg-surface-overlay text-accent border border-line'
-            )}
-          >
-            <UploadCloud className="w-8 h-8" />
-          </div>
-
-          <h2 className="text-2xl font-extrabold text-content-primary mb-2 font-heading">
-            {isDragging ? 'Drop your design.md right here' : 'Drop your design.md file here'}
-          </h2>
-          <p className="text-sm text-content-secondary max-w-md mb-6">
-            Drag & drop your Markdown specification, or{' '}
-            <span className="text-accent font-semibold underline underline-offset-4">
-              browse your computer
-            </span>
-          </p>
-
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-sm bg-surface-inset border border-line text-xs font-mono text-content-secondary">
-            <FileCode2 className="w-4 h-4 text-accent" />
-            <span>Accepts .md, .markdown • 100% Client-side privacy</span>
+        <div
+          role="button"
+          tabIndex={isImporting ? -1 : 0}
+          aria-label="Import source files: drop files here or browse your computer"
+          aria-describedby="source-file-formats source-import-limits"
+          aria-disabled={isImporting}
+          aria-busy={isImporting}
+          onClick={() => {
+            if (!importInProgress.current) fileInputRef.current?.click();
+          }}
+          onKeyDown={handleKeyDown}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={clsx(
+            'min-w-0 relative rounded-xl border-2 border-dashed transition-all duration-200 overflow-hidden p-6 sm:p-8 text-center focus:ring-4 focus:ring-accent/20 flex items-center justify-center',
+            isImporting ? 'cursor-wait' : 'cursor-pointer',
+            isDragging
+              ? 'border-accent bg-accent/10 shadow-chromatic-glow'
+              : 'border-line hover:border-accent/50 bg-surface-raised hover:bg-accent/5 shadow-chromatic'
+          )}
+        >
+          <div className="flex flex-col items-center justify-center pointer-events-none">
+            <div
+              className={clsx(
+                'w-16 h-16 rounded-lg flex items-center justify-center mb-5 transition-transform duration-200',
+                isDragging
+                  ? 'scale-110 bg-accent text-accent-contrast'
+                  : 'bg-surface-overlay text-accent border border-line'
+              )}
+            >
+              {isImporting ? (
+                <LoaderCircle className="w-8 h-8 animate-spin" aria-hidden="true" />
+              ) : (
+                <UploadCloud className="w-8 h-8" aria-hidden="true" />
+              )}
+            </div>
+            <h2 className="text-2xl font-extrabold text-content-primary mb-2 font-heading">
+              {isImporting
+                ? 'Reading your sources…'
+                : isDragging
+                  ? 'Drop your sources right here'
+                  : 'Bring your sources together'}
+            </h2>
+            <p className="text-sm text-content-secondary max-w-md mb-5">
+              Drag & drop multiple files, or{' '}
+              <span className="text-accent font-semibold underline underline-offset-4">
+                browse your computer
+              </span>
+            </p>
+            <div
+              id="source-file-formats"
+              className="rounded-md bg-surface-inset border border-line px-4 py-3 text-xs text-content-secondary leading-relaxed"
+            >
+              <p className="flex items-center justify-center gap-2 font-mono">
+                <FileCode2 className="w-4 h-4 shrink-0 text-accent" aria-hidden="true" />
+                Markdown · CSS · JSON · HTML · SVG · TXT
+              </p>
+              <p className="mt-1">PNG, JPEG & WebP palettes · PDF text</p>
+            </div>
           </div>
         </div>
+
+        <form
+          onSubmit={handlePasteSubmit}
+          aria-label="Generate DESIGN.md from pasted content"
+          className="min-w-0 rounded-xl border border-line bg-surface-raised p-5 sm:p-6 shadow-deep"
+        >
+          <div className="mb-4 flex items-center gap-2 text-content-primary">
+            <ClipboardPaste className="h-4 w-4 text-accent" aria-hidden="true" />
+            <h2 className="font-heading text-lg font-bold">Or start with a paste</h2>
+          </div>
+          <fieldset disabled={isImporting} className="min-w-0 space-y-3 disabled:opacity-60">
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="min-w-0">
+                <label htmlFor="paste-source-name" className="mb-1.5 block text-xs text-content-secondary">
+                  Source name <span className="text-content-muted">(optional)</span>
+                </label>
+                <input
+                  id="paste-source-name"
+                  value={sourceName}
+                  onChange={e => setSourceName(e.target.value)}
+                  placeholder="pasted-source"
+                  aria-describedby="paste-format-hint"
+                  className="w-full min-w-0 rounded-md border border-line bg-surface-inset px-3 py-2 text-xs text-content-primary placeholder:text-content-muted"
+                />
+              </div>
+              <div className="min-w-0">
+                <label htmlFor="paste-source-format" className="mb-1.5 block text-xs text-content-secondary">
+                  Content format
+                </label>
+                <select
+                  id="paste-source-format"
+                  value={pasteFormat}
+                  onChange={e => setPasteFormat(e.target.value as PasteFormat)}
+                  aria-describedby="paste-format-hint"
+                  className="w-full min-w-0 rounded-md border border-line bg-surface-inset px-3 py-2 text-xs text-content-primary"
+                >
+                  {PASTE_FORMATS.map(format => (
+                    <option key={format.extension} value={format.extension}>
+                      {format.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <p id="paste-format-hint" className="text-[11px] text-content-muted">
+              The selected format sets the source file extension.
+            </p>
+            <div>
+              <label htmlFor="paste-source-content" className="mb-1.5 block text-xs text-content-secondary">
+                Source content
+              </label>
+              <textarea
+                id="paste-source-content"
+                value={pastedContent}
+                onChange={e => setPastedContent(e.target.value)}
+                rows={5}
+                spellCheck={false}
+                placeholder="Paste design guidelines, CSS variables, tokens, HTML, or SVG…"
+                className="block w-full min-w-0 resize-y rounded-md border border-line bg-surface-inset px-3 py-2.5 font-mono text-xs leading-relaxed text-content-primary placeholder:text-content-muted"
+              />
+            </div>
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-xs font-bold text-accent-contrast transition-colors hover:bg-accent-hover disabled:cursor-wait"
+            >
+              {isImporting ? (
+                <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              )}
+              {isImporting ? 'Reading sources…' : 'Generate DESIGN.md'}
+            </button>
+          </fieldset>
+        </form>
       </div>
+      <div
+        id="source-import-limits"
+        className="mt-4 w-full text-center text-xs text-content-muted leading-relaxed"
+      >
+        <p>Up to 20 files · 20 MiB total · 2 MiB per text file · 10 MiB per image or PDF</p>
+        <p className="mt-1">
+          Images: palette only. PDFs: selectable text, up to 25 pages. No OCR or remote URLs.
+        </p>
+        <p className="mt-1 text-content-secondary">
+          Processed locally in your browser. No upload or AI calls.
+        </p>
+      </div>
+      {isImporting && (
+        <p role="status" aria-live="polite" className="mt-3 text-sm text-accent">
+          Reading sources and preparing your design system…
+        </p>
+      )}
 
       {/* Error Alert */}
       {error && (
@@ -234,8 +350,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
         >
           <AlertCircle className="w-5 h-5 text-status-danger shrink-0 mt-0.5" />
           <div>
-            <div className="font-semibold mb-0.5">Could not load file</div>
-            <div>{error}</div>
+            <div className="font-semibold mb-0.5">Could not import sources</div>
+            <div className="break-words">{error}</div>
           </div>
         </div>
       )}
@@ -253,6 +369,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
         <button
           type="button"
           onClick={() => setIsScaffoldModalOpen(true)}
+          disabled={isImporting}
           className="flex items-center gap-2 px-4 py-2 rounded-md bg-accent/15 hover:bg-accent/25 border border-accent/40 text-accent text-xs font-bold transition-all shrink-0"
         >
           <PlusCircle className="w-3.5 h-3.5 text-accent" />
@@ -261,7 +378,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
       </div>
 
       {/* Quick Sample Selector */}
-      <div className="w-full mt-8">
+      <fieldset disabled={isImporting} className="w-full min-w-0 mt-8 disabled:opacity-60">
         <div className="text-center mb-4">
           <span className="text-xs font-bold uppercase tracking-wider text-content-secondary font-heading">
             Or test with instant sample specifications:
@@ -271,7 +388,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <button
             type="button"
-            onClick={() => onFileLoaded(SAMPLE_SCRAPED_DESIGN_SYSTEM, 'meridian-design-system.md')}
+            onClick={() => handleExampleLoaded(SAMPLE_SCRAPED_DESIGN_SYSTEM, 'meridian-design-system.md')}
             className="flex flex-col text-left p-4 rounded-lg bg-surface-raised hover:bg-accent/5 border border-line hover:border-accent/50 transition-all group shadow-deep"
           >
             <div className="flex items-center justify-between mb-1.5">
@@ -288,7 +405,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
           <button
             type="button"
-            onClick={() => onFileLoaded(SAMPLE_MINIMAL_COLORS, 'chroma-palette.md')}
+            onClick={() => handleExampleLoaded(SAMPLE_MINIMAL_COLORS, 'chroma-palette.md')}
             className="flex flex-col text-left p-4 rounded-lg bg-surface-raised hover:bg-accent/5 border border-line hover:border-accent/50 transition-all group shadow-deep"
           >
             <div className="flex items-center justify-between mb-1.5">
@@ -305,7 +422,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
           <button
             type="button"
-            onClick={() => onFileLoaded(SAMPLE_NARRATIVE_GUIDELINES, 'aurora-guidelines.md')}
+            onClick={() => handleExampleLoaded(SAMPLE_NARRATIVE_GUIDELINES, 'aurora-guidelines.md')}
             className="flex flex-col text-left p-4 rounded-lg bg-surface-raised hover:bg-accent/5 border border-line hover:border-accent/50 transition-all group shadow-deep"
           >
             <div className="flex items-center justify-between mb-1.5">
@@ -322,7 +439,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
 
           <button
             type="button"
-            onClick={() => onFileLoaded(SAMPLE_CYBERPUNK_TOKENS, 'cyberpunk-tokens.md')}
+            onClick={() => handleExampleLoaded(SAMPLE_CYBERPUNK_TOKENS, 'cyberpunk-tokens.md')}
             className="flex flex-col text-left p-4 rounded-lg bg-surface-raised hover:bg-accent/5 border border-line hover:border-accent/50 transition-all group shadow-deep"
           >
             <div className="flex items-center justify-between mb-1.5">
@@ -337,7 +454,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
             </span>
           </button>
         </div>
-      </div>
+      </fieldset>
 
       {/* Scaffold Modal */}
       <Modal
@@ -422,8 +539,9 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded, error: externa
             </button>
             <button
               type="button"
+              disabled={isImporting}
               onClick={() => {
-                onFileLoaded(getTemplateContent(), `starter-${selectedTemplate}-design.md`);
+                handleExampleLoaded(getTemplateContent(), `starter-${selectedTemplate}-design.md`);
                 setIsScaffoldModalOpen(false);
               }}
               className="px-4 py-1.5 rounded-md bg-accent hover:bg-accent-hover text-xs font-bold text-accent-contrast shadow-deep transition-all"

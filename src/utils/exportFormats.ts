@@ -54,7 +54,11 @@ function toCssComment(value: string): string {
 }
 
 function toTableCell(value: string): string {
-  return toSingleLine(value).replace(/\|/g, '\\|');
+  return toSingleLine(value).replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+}
+
+function toMarkdownInline(value: string): string {
+  return toSingleLine(value).replace(/[\\`*_{}[\]<>#|~]/g, '\\$&');
 }
 
 /** A code span cannot escape a backtick, so backticks are dropped outright. */
@@ -542,16 +546,16 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
   });
   lines.push('---\n');
 
-  lines.push(`# ${toSingleLine(system.overview.name || 'Design System')}\n`);
+  lines.push(`# ${toMarkdownInline(system.overview.name || 'Design System')}\n`);
   if (system.overview.description) {
-    lines.push(`${system.overview.description}\n`);
+    lines.push(`${toMarkdownInline(system.overview.description)}\n`);
   }
   if (system.overview.philosophy) {
-    lines.push(`## Philosophy\n\n${system.overview.philosophy}\n`);
+    lines.push(`## Philosophy\n\n${toMarkdownInline(system.overview.philosophy)}\n`);
   }
   if (system.overview.principles.length > 0) {
     lines.push(`## Core Principles\n`);
-    system.overview.principles.forEach(p => lines.push(`* ${toSingleLine(p)}`));
+    system.overview.principles.forEach(p => lines.push(`* ${toMarkdownInline(p)}`));
     lines.push('');
   }
 
@@ -560,8 +564,11 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
     lines.push(`| Name | HEX | RGB | Role |`);
     lines.push(`| :--- | :--- | :--- | :--- |`);
     system.colors.forEach(c => {
-      lines.push(
-        `| ${toTableCell(c.name)} | \`${toCodeCell(c.hex)}\` | \`${toCodeCell(c.rgb)}\` | ${toTableCell(c.role || c.paletteGroup)} |`
+      const names = [...new Set([c.cssVariable || c.name, c.name, ...(c.aliases || [])])];
+      names.forEach(name =>
+        lines.push(
+          `| ${toTableCell(name)} | \`${toCodeCell(c.hex)}\` | \`${toCodeCell(c.rgb)}\` | ${toTableCell(c.role || c.paletteGroup)} |`
+        )
       );
     });
     lines.push('');
@@ -569,11 +576,13 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
 
   if (system.typography.length > 0) {
     lines.push(`## Typography\n`);
-    lines.push(`| Level | Font Family | Size | Weight | Line Height |`);
-    lines.push(`| :--- | :--- | :--- | :--- | :--- |`);
+    lines.push(
+      `| Level | Font Family | Size | Weight | Line Height | Letter Spacing | Text Transform | Role |`
+    );
+    lines.push(`| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |`);
     system.typography.forEach(t => {
       lines.push(
-        `| ${toTableCell(t.name)} | ${toTableCell(t.fontFamily)} | \`${toCodeCell(t.fontSize)}\` | ${toTableCell(String(t.fontWeight))} | ${toTableCell(t.lineHeight || '-')} |`
+        `| ${toTableCell(t.name)} | ${toTableCell(t.fontFamily)} | \`${toCodeCell(t.fontSize)}\` | ${toTableCell(String(t.fontWeight))} | ${toTableCell(t.lineHeight || '')} | ${toTableCell(t.letterSpacing || '')} | ${toTableCell(t.textTransform || '')} | ${toTableCell(t.role || '')} |`
       );
     });
     lines.push('');
@@ -585,7 +594,7 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
     lines.push(`| :--- | :--- | :--- | :--- |`);
     system.spacing.forEach(s => {
       lines.push(
-        `| ${toTableCell(s.name)} | \`${toCodeCell(s.value)}\` | ${s.pxValue}px | ${toTableCell(s.role || '-')} |`
+        `| ${toTableCell(s.name)} | \`${toCodeCell(s.value)}\` | ${s.pxValue}px | ${toTableCell(s.role || '')} |`
       );
     });
     lines.push('');
@@ -593,50 +602,115 @@ export function exportToNormalizedMarkdown(system: DesignSystem): string {
 
   if (system.radii.length > 0) {
     lines.push(`## Border Radius\n`);
-    lines.push(`| Token | Value | Pixels |`);
-    lines.push(`| :--- | :--- | :--- |`);
+    lines.push(`| Token | Value | Pixels | Role |`);
+    lines.push(`| :--- | :--- | :--- | :--- |`);
     system.radii.forEach(r => {
-      lines.push(`| ${toTableCell(r.name)} | \`${toCodeCell(r.value)}\` | ${r.pxValue}px |`);
+      lines.push(
+        `| ${toTableCell(r.name)} | \`${toCodeCell(r.value)}\` | ${r.pxValue}px | ${toTableCell(r.role || '')} |`
+      );
     });
     lines.push('');
   }
 
   if (system.shadows.length > 0) {
     lines.push(`## Shadows & Elevation\n`);
-    lines.push(`| Level | CSS Value |`);
-    lines.push(`| :--- | :--- |`);
+    lines.push(`| Level | CSS Value | Role |`);
+    lines.push(`| :--- | :--- | :--- |`);
     system.shadows.forEach(sh => {
-      lines.push(`| ${toTableCell(sh.name)} | \`${toCodeCell(sh.value)}\` |`);
+      lines.push(`| ${toTableCell(sh.name)} | \`${toCodeCell(sh.value)}\` | ${toTableCell(sh.role || '')} |`);
     });
+    lines.push('');
+  }
+
+  if (system.borders.length > 0) {
+    lines.push(
+      '## Borders\n',
+      '| Name | Width | Style | Color | Role |',
+      '| :--- | :--- | :--- | :--- | :--- |'
+    );
+    system.borders.forEach(b =>
+      lines.push(
+        `| ${toTableCell(b.name)} | \`${toCodeCell(b.width)}\` | ${toTableCell(b.style)} | ${toTableCell(b.color || '')} | ${toTableCell(b.role || '')} |`
+      )
+    );
     lines.push('');
   }
 
   if (system.breakpoints.length > 0) {
     lines.push(`## Breakpoints\n`);
-    lines.push(`| Name | Min Width | Pixels |`);
-    lines.push(`| :--- | :--- | :--- |`);
+    lines.push(`| Name | Min Width | Pixels | Role |`);
+    lines.push(`| :--- | :--- | :--- | :--- |`);
     system.breakpoints.forEach(b => {
-      lines.push(`| ${toTableCell(b.name)} | \`${toCodeCell(b.minWidth || '')}\` | ${b.pxValue}px |`);
+      lines.push(
+        `| ${toTableCell(b.name)} | \`${toCodeCell(b.minWidth || '')}\` | ${b.pxValue}px | ${toTableCell(b.role || '')} |`
+      );
     });
+    lines.push('');
+  }
+
+  if (system.motion.length > 0) {
+    lines.push(
+      '## Motion\n',
+      '| Name | Duration | Easing | Transition | Usage |',
+      '| :--- | :--- | :--- | :--- | :--- |'
+    );
+    system.motion.forEach(m =>
+      lines.push(
+        `| ${toTableCell(m.name)} | ${toTableCell(m.duration || '')} | ${toTableCell(m.easing || '')} | ${toTableCell(m.cssTransition || '')} | ${toTableCell(m.usage || '')} |`
+      )
+    );
+    lines.push('');
+  }
+
+  if (system.tokens.length > 0) {
+    lines.push(
+      '## Tokens\n',
+      '| Name | CSS Variable | Definition | Category |',
+      '| :--- | :--- | :--- | :--- |'
+    );
+    system.tokens.forEach(t =>
+      lines.push(
+        `| ${toTableCell(t.name)} | ${toTableCell(t.cssVariable || '')} | \`${toCodeCell(t.value)}\` | ${toTableCell(t.category)} |`
+      )
+    );
     lines.push('');
   }
 
   if (system.components.length > 0) {
     lines.push(`## Components\n`);
     system.components.forEach(c => {
-      lines.push(`### ${toSingleLine(c.name)}\n`);
-      if (c.description) lines.push(`${c.description}\n`);
+      lines.push(`### ${toMarkdownInline(c.name)}\n`);
+      if (c.description) lines.push(`${toMarkdownInline(c.description)}\n`);
       if (c.variants && c.variants.length > 0) {
         lines.push(`#### Variants\n`);
         c.variants.forEach(v =>
           lines.push(
-            `* **${toSingleLine(v.name)}**${v.description ? `: ${toSingleLine(v.description)}` : ''}`
+            `* **${toMarkdownInline(v.name)}**${v.description ? `: ${toMarkdownInline(v.description)}` : ''}`
           )
         );
         lines.push('');
       }
-      if (c.states && c.states.length > 0) {
-        lines.push(`#### States: ${c.states.map(toSingleLine).join(', ')}\n`);
+      const details = [
+        ['States', c.states],
+        ['Sizes', c.sizes],
+        ['Anatomy', c.anatomy],
+        ['Tokens', c.tokensUsed],
+        ['Behavior', c.behaviorNotes],
+        ['Accessibility', c.a11yNotes],
+      ] as const;
+      details.forEach(([title, items]) => {
+        if (!items?.length) return;
+        lines.push(`#### ${title}\n`);
+        items.forEach(item => lines.push(`* ${toMarkdownInline(item)}`));
+        lines.push('');
+      });
+      if (c.rawCodeExample) {
+        const longestRun = (c.rawCodeExample.match(/`+/g) || []).reduce(
+          (max, run) => Math.max(max, run.length),
+          0
+        );
+        const fence = '`'.repeat(Math.max(3, longestRun + 1));
+        lines.push(`#### Code Example\n`, `${fence}text`, c.rawCodeExample, fence, '');
       }
     });
   }

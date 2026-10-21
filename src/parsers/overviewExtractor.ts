@@ -1,6 +1,15 @@
 import { DesignSystemOverview, ColorToken, TypographyToken } from '../schema/designSystem';
 import { ParsedMarkdownStructure } from './markdownStructure';
 
+/** Decode only punctuation escapes produced by normalized Markdown; keep path separators. */
+function overviewText(value: string, removableMarkup = ''): string {
+  return value.replace(
+    /\\([\\`*_{}[\]<>#|~])|([*_#`])/g,
+    (match, escaped: string | undefined, markup: string) =>
+      escaped !== undefined ? escaped : removableMarkup.includes(markup) ? '' : match
+  );
+}
+
 export function extractOverview(
   structure: ParsedMarkdownStructure,
   colors: ColorToken[],
@@ -16,7 +25,9 @@ export function extractOverview(
   // 1. Detect System Name from first level 1 heading (# System Name)
   const h1 = structure.sections.find(s => s.level === 1);
   if (h1) {
-    name = h1.heading.replace(/^design system:?\s*/i, '').trim();
+    name = overviewText(h1.heading)
+      .replace(/^design system:?\s*/i, '')
+      .trim();
   } else {
     name = fileName.replace(/\.md$/i, '').replace(/[-_]/g, ' ');
     name = name.charAt(0).toUpperCase() + name.slice(1);
@@ -43,7 +54,7 @@ export function extractOverview(
             !l.startsWith('`')
         );
       if (firstParagraph) {
-        description = firstParagraph;
+        description = overviewText(firstParagraph);
       }
     }
 
@@ -53,7 +64,7 @@ export function extractOverview(
       headingLower.includes('vision') ||
       headingLower.includes('concept')
     ) {
-      philosophy = section.content.trim().split('\n\n')[0].replace(/[*_#]/g, '').trim();
+      philosophy = overviewText(section.content.trim().split('\n\n')[0], '*_#').trim();
     }
 
     // Tone / Aesthetic
@@ -63,7 +74,7 @@ export function extractOverview(
       headingLower.includes('direction') ||
       headingLower.includes('brand')
     ) {
-      visualTone = section.content.trim().split('\n\n')[0].replace(/[*_#]/g, '').trim();
+      visualTone = overviewText(section.content.trim().split('\n\n')[0], '*_#').trim();
     }
 
     // Principles
@@ -76,7 +87,7 @@ export function extractOverview(
       lines.forEach(l => {
         const itemMatch = l.trim().match(/^[-*+]\s+(.+)$/);
         if (itemMatch && principles.length < 8) {
-          principles.push(itemMatch[1].replace(/[*_`]/g, '').trim());
+          principles.push(overviewText(itemMatch[1], '*_`').trim());
         }
       });
     }
@@ -90,7 +101,7 @@ export function extractOverview(
       firstSec.content.split('\n').forEach(l => {
         const m = l.trim().match(/^[-*+]\s+(.+)$/);
         if (m && principles.length < 5) {
-          principles.push(m[1].replace(/[*_`]/g, '').trim());
+          principles.push(overviewText(m[1], '*_`').trim());
         }
       });
     }

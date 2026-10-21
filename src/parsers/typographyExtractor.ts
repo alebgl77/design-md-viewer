@@ -95,6 +95,9 @@ export function extractTypography(structure: ParsedMarkdownStructure): Typograph
       const weightIdx = table.headers.findIndex(h => /weight|font-weight/i.test(h));
       const lhIdx = table.headers.findIndex(h => /line-height|leading|height/i.test(h));
       const familyIdx = table.headers.findIndex(h => /family|font/i.test(h));
+      const trackingIdx = table.headers.findIndex(h => /letter[- ]spacing|tracking/i.test(h));
+      const transformIdx = table.headers.findIndex(h => /transform/i.test(h));
+      const roleIdx = table.headers.findIndex(h => /role|usage|description/i.test(h));
 
       table.rows.forEach((row, rowIdx) => {
         const rowLine = table.startLine + rowIdx + 2;
@@ -114,9 +117,9 @@ export function extractTypography(structure: ParsedMarkdownStructure): Typograph
             sizeVal,
             weightVal || 400,
             lhVal || undefined,
-            undefined,
-            undefined,
-            rawName,
+            trackingIdx !== -1 ? cleanCell(row[trackingIdx]) || undefined : undefined,
+            transformIdx !== -1 ? cleanCell(row[transformIdx]) || undefined : undefined,
+            roleIdx !== -1 ? cleanCell(row[roleIdx]) || undefined : rawName,
             {
               sectionTitle: table.headingPath[table.headingPath.length - 1],
               headingPath: table.headingPath,

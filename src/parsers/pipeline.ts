@@ -58,6 +58,9 @@ export function parseDesignDocument(rawMarkdown: string, fileName = 'design.md')
 
   categoriesDetected.push('Source');
 
+  // Count token records across the eight primitive categories and generic
+  // definitions. Components and accessibility rules are specifications, not
+  // tokens. A CSS definition and its extracted primitive are separate records.
   const totalTokensCount =
     colors.length +
     typography.length +
@@ -66,6 +69,7 @@ export function parseDesignDocument(rawMarkdown: string, fileName = 'design.md')
     shadows.length +
     borders.length +
     breakpoints.length +
+    motion.length +
     tokens.length;
 
   overview.totalTokensCount = totalTokensCount;

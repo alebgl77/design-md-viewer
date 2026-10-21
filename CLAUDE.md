@@ -9,19 +9,26 @@ npm run dev        # Start Vite dev server (port 5173)
 npm run build       # Type-check (tsc) then production build
 npm run preview     # Preview the production build
 npm test            # Run all tests once (vitest run)
+npm run typecheck   # TypeScript without emitting files
+npm run lint        # ESLint
+npm run format:check # Prettier check
 ```
 
 Run a single test file: `npx vitest run src/parsers/__tests__/pipeline.test.ts`
 
-There is no lint script configured.
+Format touched files with `npx prettier --write <paths>`. Keep lint warnings from increasing.
 
 ## What this app does
 
-A client-side, single-page React app that takes a `design.md` file (a markdown document describing a design system - colors, typography, spacing, components, etc.) and turns it into a structured, browsable UI: token tables, color swatches with contrast checks, component previews, a health/lint audit, and a source viewer with click-to-jump provenance. Everything runs in the browser; there is no backend. The only network call is optional, user-initiated AI enrichment (see below).
+A client-side React app that imports local Markdown/text, CSS, JSON tokens, HTML/SVG styles, raster palettes, or PDF text, individually or in a batch, and also accepts pasted text. Adapters produce Markdown for the existing parser and browsable UI: tokens, contrast checks, illustrative component previews, audit, and source inspection. Export includes a normalized `DESIGN.md`. Everything runs in the browser with no backend. Imports never call AI; optional enrichment is user-initiated. App assets and webfonts also make network requests.
+
+See [docs/IMPORTING.md](docs/IMPORTING.md) for exact support, bounds, examples, and adapter development; [docs/ROADMAP.md](docs/ROADMAP.md) distinguishes future capabilities.
 
 ## Architecture: the parsing pipeline
 
-The core of this codebase is a deterministic markdown → structured-data pipeline, not the UI. Understanding it means reading files in this order:
+`src/importers/index.ts` is the ingestion boundary: `importSources` handles pasted/text inputs and `importFiles` asynchronously reads local files, lazy-loading image and PDF adapters. `limits.ts` bounds input, traversal, and output. Adapters return inert Markdown, a format label, warnings, and optional definitions for conflict reporting. They must never execute source code, create a source DOM, or fetch remote resources. A single Markdown file retains its original source; other imports generate source sections and provenance lines refer to that generated Markdown. Unsupported members of a mixed batch remain visible as import warnings.
+
+The core then follows a deterministic markdown → structured-data pipeline. Read these files in order:
 
 1. **`src/parsers/markdownStructure.ts`** - single-pass tokenizer that turns raw markdown into `ParsedMarkdownStructure`: headings (with a heading-path stack), code blocks, tables, and list items, each carrying line numbers and the heading path they occur under. All later extractors consume this structure instead of re-parsing raw text.
 2. **`src/parsers/*Extractor.ts`** (colorExtractor, typographyExtractor, spacingExtractor, radiusExtractor, shadowExtractor, borderExtractor, breakpointExtractor, componentExtractor, motionExtractor, a11yExtractor, overviewExtractor) - each one independently scans the parsed structure (code blocks, tables, list items) for its category using heuristics/regex (e.g. CSS custom properties, markdown tables with color-ish headers, `**Name**: value` list items). Extractors are additive and order-independent; adding a new token category means adding a new extractor here rather than modifying existing ones.
@@ -37,7 +44,7 @@ Input files are treated as untrusted/adversarial. `src/parsers/safety.ts` strips
 
 ## UI structure
 
-`src/App.tsx` is the top-level state machine: `null` system → `DropZone` landing screen; loaded system → header + `DynamicSidebar` (built from `categoriesDetected`) + one `features/<category>/*View.tsx` component per category, all reading from the same parsed `DesignSystem` object. Views call `onNavigateToSource(lineNumber)` to jump to `SourceView`, which highlights the originating line - this is why every extracted token carries `provenance`. `SearchModal` does cross-category search (Cmd/Ctrl+K) via `src/utils/search.ts`. `ExportModal` uses `src/utils/exportFormats.ts` to serialize the parsed system (JSON/CSS variables/etc.).
+`src/App.tsx` is the top-level state machine: `null` system → `DropZone` file/paste landing screen; loaded system → header + `ImportSummary` + `DynamicSidebar` + one lazy `features/<category>/*View.tsx`. Import summaries/warnings are separate from the parsed `DesignSystem` so enrichment cannot replace them. Clear both on unload. Views call `onNavigateToSource(lineNumber)` to inspect original or generated Markdown. SourceView's alternate section outline is not a full Markdown renderer. `SearchModal` provides Cmd/Ctrl+K search. `ExportModal` serializes parsed data through `src/utils/exportFormats.ts`; normalized Markdown preserves supported semantics, not lossless original source fidelity.
 
 `src/ai/aiEnrichmentService.ts` is the one place that talks to a network API (Gemini, or a user-supplied custom endpoint) - it only adds conceptual/semantic metadata (tagline, philosophy, component descriptions) on top of the deterministic parse, is explicitly instructed not to invent hex/pixel values, validates the response with a zod schema, and fails soft back to the deterministic result on any error. It's opt-in via `AiSettingsModal` and never required for the app to function.
 
@@ -59,3 +66,4 @@ Input files are treated as untrusted/adversarial. `src/parsers/safety.ts` strips
   belong in inline `style={{ }}`, not in a token. `ComponentsView.tsx` also embeds hex inside the React
   source it _generates_ for the user to copy; that snippet must stay self-contained, so leave it alone.
 - New token categories require: an entry in `DesignSystem`/schema, an extractor, a wire-up in `pipeline.ts`'s `categoriesDetected`/count logic, a `features/<category>/*View.tsx`, and a case in `App.tsx`'s category switch and `DynamicSidebar`.
+- New input formats require a bounded adapter in `src/importers/`, dispatch and accepted-extension updates, tests for normal/malformed/hostile/oversized input, and support/limitation documentation. Do not broaden the shared parser merely to make an adapter's output work.
