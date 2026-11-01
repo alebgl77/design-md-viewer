@@ -6,8 +6,8 @@ const AiEnrichmentResponseSchema = z.object({
   philosophy: z.string().optional(),
   visualTone: z.string().optional(),
   principles: z.array(z.string()).optional(),
-  componentDescriptions: z.record(z.string()).optional(),
-  componentVariantsInferred: z.record(z.array(z.string())).optional(),
+  componentDescriptions: z.record(z.string(), z.string()).optional(),
+  componentVariantsInferred: z.record(z.string(), z.array(z.string())).optional(),
 });
 
 export interface AiConfig {
